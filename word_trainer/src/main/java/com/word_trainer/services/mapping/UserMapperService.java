@@ -1,0 +1,45 @@
+package com.word_trainer.services.mapping;
+
+import com.word_trainer.domain.dto.users.UserDto;
+import com.word_trainer.domain.dto.users.UserRegistrationDto;
+import com.word_trainer.domain.entity.User;
+import com.word_trainer.security.contstants.Role;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.time.LocalDateTime;
+
+import static com.word_trainer.security.contstants.Role.ROLE_USER;
+
+
+@Mapper
+public abstract class UserMapperService {
+
+    @Autowired
+    protected PasswordEncoder encoder;
+
+    @Mapping(target = "isActive", constant = "true")
+    @Mapping(target = "name", source = "userName")
+    @Mapping(target = "role", expression = "java(getDefaultRole())")
+    @Mapping(target = "password", expression = "java(encodePassword(dto))")
+    @Mapping(target = "loginBlockedUntil", expression = "java(getDefaultLoginBlockedUntil())")
+    public abstract User toEntity(UserRegistrationDto dto);
+
+    @Mapping(target = "userName", source = "name")
+    @Mapping(target = "userId", source = "id")
+    public abstract UserDto toDto(User user);
+
+    protected Role getDefaultRole() {
+        return ROLE_USER;
+    }
+
+    protected String encodePassword(UserRegistrationDto dto) {
+        return encoder.encode(dto.getPassword());
+    }
+
+    protected LocalDateTime getDefaultLoginBlockedUntil() {
+        return LocalDateTime.now();
+    }
+}
