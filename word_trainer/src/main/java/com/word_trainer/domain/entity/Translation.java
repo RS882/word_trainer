@@ -1,7 +1,7 @@
 package com.word_trainer.domain.entity;
 
 import com.word_trainer.audit.EntityAudit;
-import com.word_trainer.constants.Language;
+import com.word_trainer.constants.language.Language;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.envers.Audited;

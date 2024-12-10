@@ -58,7 +58,25 @@ public interface UserAPI {
                                             name = "Wrong email",
                                             value = "{\"message\": \"Email address already in use\"}"
                                     )
-                            }))
+                            })),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized user",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ResponseMessageDto.class)
+                    )),
+            @ApiResponse(responseCode = "403",
+                    description = "User doesn't have right for this resource",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ResponseMessageDto.class)
+                    )),
+            @ApiResponse(responseCode = "500",
+                    description = "Server error",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ResponseMessageDto.class)
+                    )),
     })
     @PostMapping("/registration")
     ResponseEntity<UserDto> createUser(@org.springframework.web.bind.annotation.RequestBody @Valid UserRegistrationDto userRegistrationDto);
