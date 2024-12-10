@@ -10,7 +10,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.util.UUID;
 
 @Entity
-@Table(name = "translation")
+@Table(name = "translation",
+        indexes = @Index(name = "idx_meaning", columnList = "meaning"))
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Builder

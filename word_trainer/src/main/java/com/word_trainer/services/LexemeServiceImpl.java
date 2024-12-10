@@ -4,26 +4,37 @@ import com.word_trainer.constants.LexemeType;
 import com.word_trainer.constants.language.Language;
 import com.word_trainer.domain.dto.lexeme.LexemeDto;
 import com.word_trainer.domain.dto.lexeme.LexemesFileDto;
-import com.word_trainer.domain.entity.User;
+import com.word_trainer.domain.entity.Lexeme;
+import com.word_trainer.domain.entity.Translation;
 import com.word_trainer.exception_handler.bad_requeat.exceptions.BadFileFormatException;
 import com.word_trainer.exception_handler.bad_requeat.exceptions.BadFileSizeException;
 import com.word_trainer.exception_handler.server_exception.ServerIOException;
+import com.word_trainer.repository.LexemeRepository;
 import com.word_trainer.services.interfaces.LexemeService;
+import com.word_trainer.services.interfaces.TranslationService;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class LexemeServiceImpl implements LexemeService {
+
+    private final LexemeRepository repository;
+
+    private final TranslationService translationService;
+
     @Override
     public int getCountOfCreatedLexemeFromFile(LexemesFileDto dto) {
         MultipartFile file = dto.getFile();
         checkFile(file);
-
 
         return getCountOfCreatedLexemesFromExcelRowInFile(dto);
     }
@@ -84,8 +95,8 @@ public class LexemeServiceImpl implements LexemeService {
                         .targetMeaning(targetMeaningCell.getStringCellValue())
                         .type(getLexemeTypeFromExcelCell(lexemeTypeCell))
                         .build();
-
-                return isLexemeCreatedByLexemeDto(dto);
+                createLexemeByLexemeDto(dto);
+                return true;
             } else {
                 return false;
             }
@@ -110,8 +121,30 @@ public class LexemeServiceImpl implements LexemeService {
         }
     }
 
-    private boolean isLexemeCreatedByLexemeDto(LexemeDto dto) {
+    @Transactional
+    private void createLexemeByLexemeDto(LexemeDto dto) {
 
-        return true;
+        Translation existingTranslation = translationService
+                .getTranslationByMeaning(dto.getSourceMeaning(), dto.getSourceLanguage());
+
+        if (existingTranslation == null) {
+            createNewLexeme(dto);
+        } else {
+            updateLexeme(existingTranslation, dto);
+        }
+    }
+
+    private void createNewLexeme(LexemeDto dto){
+        Lexeme newLexeme = Lexeme.builder()
+                .type(dto.getType())
+                .isActive(true)
+                .build();
+        Lexeme savedLexeme = repository.save(newLexeme);
+        translationService.createPairOfTranslation(dto, savedLexeme);
+    }
+
+    private void updateLexeme(Translation existingTranslation,LexemeDto dto ){
+        Lexeme currentLexeme = existingTranslation.getLexeme();
+        translationService.updateTargetTranslation(dto, currentLexeme);
     }
 }
