@@ -1,9 +1,9 @@
 package com.word_trainer.audit;
 
+import com.word_trainer.domain.entity.User;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -22,12 +22,11 @@ public class AuditorAwareImpl implements AuditorAware<String> {
         Object principal = authentication.getPrincipal();
         String username;
 
-        if (principal instanceof UserDetails) {
-            username = ((UserDetails) principal).getUsername();
+        if (principal instanceof User) {
+            username = ((User) principal).getEmail();
         } else {
             username = principal.toString();
         }
-
         return Optional.of(username);
     }
 }

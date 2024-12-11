@@ -2,19 +2,15 @@ package com.word_trainer.domain.entity;
 
 
 import com.word_trainer.security.contstants.Role;
-import com.word_trainer.security.domain.entity.RefreshToken;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "\"user\"")
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -42,7 +38,4 @@ public class User {
 
     @Column(name = "login_blocked_until")
     private LocalDateTime loginBlockedUntil;
-
-    @OneToMany(mappedBy = "user")
-    private Set<RefreshToken> refreshTokenSet = new HashSet<>();
 }

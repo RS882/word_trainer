@@ -65,7 +65,6 @@ public interface LexemeAPI {
                             }))
     })
     @PostMapping("/file")
-    @ResponseStatus(HttpStatus.CREATED)
     ResponseEntity<ResponseMessageDto> createLexemesFromFile(
             @ModelAttribute
             @Valid

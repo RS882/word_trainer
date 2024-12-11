@@ -64,6 +64,7 @@ public class TokenService {
                 .build();
     }
 
+    @Transactional
     public List<String> getRefreshTokensByUserId(Long id) {
         List<RefreshToken> refreshTokens = repository.findByUserId(id).orElseThrow(
                 () -> new TokenNotFoundException("Token not found"));
@@ -116,6 +117,7 @@ public class TokenService {
                 .compact();
     }
 
+    @Transactional
     private void saveRefreshToken(String refreshToken, User user) {
         RefreshToken refreshTokenEntity = RefreshToken.builder()
                 .token(refreshToken)

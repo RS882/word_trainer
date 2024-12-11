@@ -13,6 +13,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+#    show-sql: true
+#    open-in-view: false
+#    properties:
+#      hibernate:
+#        format_sql: true
 server:
   servlet:
     context-path: /api
@@ -25,9 +30,13 @@ expires:
   refresh: ${EXPIRES_REFRESH:21600}
 #logging:
 #  level:
-#    root: DEBUG
-#  file:
-#    name: app.log
+#    org:
+#      hibernate:
+#        SQL: DEBUG
+#        type:
+#          descriptor:
+#            sql:
+#              BasicBinder: TRACE
 
 
 

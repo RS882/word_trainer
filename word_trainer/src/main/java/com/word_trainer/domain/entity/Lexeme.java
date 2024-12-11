@@ -14,7 +14,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "lexeme")
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = "translations")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,11 +28,12 @@ public class Lexeme extends EntityAudit {
     private UUID id;
 
     @Column(name = "type")
+    @Enumerated(EnumType.STRING)
     private LexemeType type;
 
     @Column(name = "is_active")
     private Boolean isActive;
 
-    @OneToMany(mappedBy = "lexeme", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "lexeme", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Translation> translations = new HashSet<>();
 }

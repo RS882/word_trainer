@@ -9,7 +9,5 @@ public interface TranslationService {
 
     Translation getTranslationByMeaning(String meaning, Language language);
 
-    void createPairOfTranslation(LexemeDto dto, Lexeme lexeme);
-
     void updateTargetTranslation(LexemeDto dto, Lexeme lexeme);
 }

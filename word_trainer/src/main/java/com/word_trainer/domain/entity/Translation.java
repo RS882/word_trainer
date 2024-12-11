@@ -13,7 +13,7 @@ import java.util.UUID;
 @Table(name = "translation",
         indexes = @Index(name = "idx_meaning", columnList = "meaning"))
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = "lexeme")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,6 +27,7 @@ public class Translation extends EntityAudit {
     private UUID id;
 
     @Column(name = "language")
+    @Enumerated(EnumType.STRING)
     private Language language;
 
     @Column(name = "meaning")
@@ -35,7 +36,7 @@ public class Translation extends EntityAudit {
     @Column(name = "is_active")
     private Boolean isActive;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lexeme_id")
     private Lexeme lexeme;
 }
