@@ -3,19 +3,25 @@ package com.word_trainer.services;
 import com.word_trainer.constants.LexemeType;
 import com.word_trainer.constants.language.Language;
 import com.word_trainer.domain.dto.lexeme.LexemeDto;
+import com.word_trainer.domain.dto.lexeme.LexemeTranslationDto;
 import com.word_trainer.domain.dto.lexeme.LexemesFileDto;
+import com.word_trainer.domain.dto.response.ResponseLexemesDto;
+import com.word_trainer.domain.dto.response.ResponseTranslationDto;
 import com.word_trainer.domain.entity.Lexeme;
 import com.word_trainer.domain.entity.Translation;
+import com.word_trainer.domain.entity.User;
 import com.word_trainer.exception_handler.bad_requeat.exceptions.BadFileFormatException;
 import com.word_trainer.exception_handler.bad_requeat.exceptions.BadFileSizeException;
 import com.word_trainer.exception_handler.server_exception.ServerIOException;
 import com.word_trainer.repository.LexemeRepository;
 import com.word_trainer.services.interfaces.LexemeService;
 import com.word_trainer.services.interfaces.TranslationService;
+import com.word_trainer.services.mapping.LexemeMapperService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,15 +29,17 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class LexemeServiceImpl implements LexemeService {
 
     private final LexemeRepository repository;
 
     private final TranslationService translationService;
+
+    private final LexemeMapperService lexemeMapperService;
 
     @Override
     public int getCountOfCreatedLexemeFromFile(LexemesFileDto dto) {
@@ -42,6 +50,34 @@ public class LexemeServiceImpl implements LexemeService {
     @Override
     public void createLexeme(LexemeDto dto) {
         createLexemeByLexemeDto(dto);
+    }
+
+    @Override
+    public ResponseLexemesDto getLexemes(int count, Language sourceLanguage,
+                                         Language targetLanguage, User currectUser) {
+        Pageable pageable = PageRequest.of(0, count);
+        List<Lexeme> lexemes = repository.findRandomLexemes(pageable, sourceLanguage, targetLanguage);
+        return getResponseLexemesDto(sourceLanguage, targetLanguage, lexemes);
+    }
+
+    private ResponseLexemesDto getResponseLexemesDto(Language sourceLanguage,
+                                                     Language targetLanguage,
+                                                     List<Lexeme> lexemes) {
+        List<ResponseTranslationDto> responseTranslationDtos = lexemes.stream()
+                .map(l -> {
+                            LexemeTranslationDto dto = LexemeTranslationDto.builder()
+                                    .sourceLanguage(sourceLanguage)
+                                    .targetLanguage(targetLanguage)
+                                    .lexeme(l)
+                                    .build();
+                            return lexemeMapperService.toResponseTranslationDto(dto);
+                        }
+                ).toList();
+        return ResponseLexemesDto.builder()
+                .sourceLanguage(sourceLanguage)
+                .targetLanguage(targetLanguage)
+                .translations(responseTranslationDtos)
+                .build();
     }
 
     private void checkFile(MultipartFile file) {

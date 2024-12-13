@@ -1,4 +1,4 @@
-package com.word_trainer.security.configs;
+package com.word_trainer.security.configs.configs_components;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

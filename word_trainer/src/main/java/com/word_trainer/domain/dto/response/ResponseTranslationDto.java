@@ -1,5 +1,6 @@
 package com.word_trainer.domain.dto.response;
 
+import com.word_trainer.constants.LexemeType;
 import com.word_trainer.constants.language.Language;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -17,6 +18,9 @@ public class ResponseTranslationDto {
 
     @Schema(description = "Lexeme ID", example = "a52395dc-04cc-44bd-8bc6-f87c46165688")
     private UUID lexemeId;
+
+    @Schema(description = "Lexeme type", example = "WORD")
+    private LexemeType type;
 
     @Schema(description = "Translations of lexeme", example = """
             {

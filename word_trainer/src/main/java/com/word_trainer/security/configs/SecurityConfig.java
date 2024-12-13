@@ -1,6 +1,8 @@
 package com.word_trainer.security.configs;
 
 
+import com.word_trainer.security.configs.configs_components.CustomAccessDeniedHandler;
+import com.word_trainer.security.configs.configs_components.CustomAuthenticationEntryPoint;
 import com.word_trainer.security.filters.ValidationFilter;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -28,7 +30,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain configureAuth(HttpSecurity http) throws Exception {
-
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s ->
@@ -42,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/v1/auth/logout").authenticated()
                         .requestMatchers(HttpMethod.POST, "/v1/lexeme/file").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/v1/lexeme").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/v1/lexeme").authenticated()
                         .anyRequest().denyAll()
                 )
                 .addFilterBefore(validationFilter, UsernamePasswordAuthenticationFilter.class)

@@ -30,13 +30,9 @@ expires:
   refresh: ${EXPIRES_REFRESH:21600}
 #logging:
 #  level:
-#    org:
-#      hibernate:
-#        SQL: DEBUG
-#        type:
-#          descriptor:
-#            sql:
-#              BasicBinder: TRACE
+#    org.springframework:
+#      security: DEBUG
+#    org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver: DEBUG
 
 
 
