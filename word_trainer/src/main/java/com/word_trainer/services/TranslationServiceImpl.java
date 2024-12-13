@@ -40,7 +40,7 @@ public class TranslationServiceImpl implements TranslationService {
             String currentMeaning = targetTranslation.getMeaning();
             String dtoTargetMeaning = dto.getTargetMeaning();
             if (!currentMeaning.equals(dtoTargetMeaning)) {
-                targetTranslation.setMeaning(currentMeaning + " ," + dtoTargetMeaning);
+                targetTranslation.setMeaning(currentMeaning + ", " + dtoTargetMeaning);
             }
         }
     }

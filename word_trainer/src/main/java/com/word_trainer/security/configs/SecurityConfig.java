@@ -24,6 +24,8 @@ public class SecurityConfig {
 
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+
     @Bean
     public SecurityFilterChain configureAuth(HttpSecurity http) throws Exception {
 
@@ -39,10 +41,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/v1/auth/validation").authenticated()
                         .requestMatchers(HttpMethod.GET, "/v1/auth/logout").authenticated()
                         .requestMatchers(HttpMethod.POST, "/v1/lexeme/file").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/v1/lexeme").hasRole("ADMIN")
                         .anyRequest().denyAll()
                 )
                 .addFilterBefore(validationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthenticationEntryPoint))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                )
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .build();
     }

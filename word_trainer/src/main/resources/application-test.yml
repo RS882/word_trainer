@@ -20,8 +20,8 @@ server:
     context-path: /api
   port: ${PORT:8090}
 key:
-  access: ${ACCESS_SECRET}
-  refresh: ${REFRESH_SECRET}
+  access: ${ACCESS_SECRET:0LbQstCw0LTRi9C20LLQtNCw0L7RhNGQsNC20LLRi9Ct0Y}
+  refresh: ${REFRESH_SECRET:L0LLQsNGC0YTRi9Cy0LDRg9C60LXQuNGJ0YHQvNGC0YfQtN}
 expires:
   access: ${EXPIRES_ACCESS:30}
   refresh: ${EXPIRES_REFRESH:21600}

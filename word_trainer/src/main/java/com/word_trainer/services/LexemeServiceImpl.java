@@ -35,10 +35,13 @@ public class LexemeServiceImpl implements LexemeService {
 
     @Override
     public int getCountOfCreatedLexemeFromFile(LexemesFileDto dto) {
-        MultipartFile file = dto.getFile();
-        checkFile(file);
-
+        checkFile(dto.getFile());
         return getCountOfCreatedLexemesFromExcelRowInFile(dto);
+    }
+
+    @Override
+    public void createLexeme(LexemeDto dto) {
+        createLexemeByLexemeDto(dto);
     }
 
     private void checkFile(MultipartFile file) {
