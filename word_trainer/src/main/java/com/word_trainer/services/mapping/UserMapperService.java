@@ -20,7 +20,6 @@ public abstract class UserMapperService {
     @Autowired
     protected PasswordEncoder encoder;
 
-    @Mapping(target = "isActive", constant = "true")
     @Mapping(target = "name", source = "userName")
     @Mapping(target = "role", expression = "java(getDefaultRole())")
     @Mapping(target = "password", expression = "java(encodePassword(dto))")

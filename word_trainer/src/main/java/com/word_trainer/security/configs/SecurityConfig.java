@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/lexeme/file").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/v1/lexeme").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/v1/lexeme").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/v1/user/lexeme/result").authenticated()
                         .anyRequest().denyAll()
                 )
                 .addFilterBefore(validationFilter, UsernamePasswordAuthenticationFilter.class)

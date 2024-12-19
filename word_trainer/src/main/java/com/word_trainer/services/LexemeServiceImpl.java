@@ -12,6 +12,7 @@ import com.word_trainer.domain.entity.Translation;
 import com.word_trainer.domain.entity.User;
 import com.word_trainer.exception_handler.bad_requeat.exceptions.BadFileFormatException;
 import com.word_trainer.exception_handler.bad_requeat.exceptions.BadFileSizeException;
+import com.word_trainer.exception_handler.not_found.exceptions.LexemeNotFoundException;
 import com.word_trainer.exception_handler.server_exception.ServerIOException;
 import com.word_trainer.repository.LexemeRepository;
 import com.word_trainer.services.interfaces.LexemeService;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +42,7 @@ public class LexemeServiceImpl implements LexemeService {
     private final TranslationService translationService;
 
     private final LexemeMapperService lexemeMapperService;
+    ;
 
     @Override
     public int getCountOfCreatedLexemeFromFile(LexemesFileDto dto) {
@@ -58,6 +61,12 @@ public class LexemeServiceImpl implements LexemeService {
         Pageable pageable = PageRequest.of(0, count);
         List<Lexeme> lexemes = repository.findRandomLexemes(pageable, sourceLanguage, targetLanguage);
         return getResponseLexemesDto(sourceLanguage, targetLanguage, lexemes);
+    }
+
+    @Override
+    public Lexeme getLexemesById(UUID lexemeId) {
+        return repository.findById(lexemeId)
+                .orElseThrow(() -> new LexemeNotFoundException(lexemeId));
     }
 
     private ResponseLexemesDto getResponseLexemesDto(Language sourceLanguage,
@@ -174,18 +183,15 @@ public class LexemeServiceImpl implements LexemeService {
     private void createNewLexeme(LexemeDto dto) {
         Lexeme newLexeme = Lexeme.builder()
                 .type(dto.getType())
-                .isActive(true)
                 .translations(new HashSet<>())
                 .build();
         Lexeme savedLexeme = repository.save(newLexeme);
         Translation sourceTranslation = Translation.builder()
-                .isActive(true)
                 .meaning(dto.getSourceMeaning())
                 .language(dto.getSourceLanguage())
                 .lexeme(savedLexeme)
                 .build();
         Translation targetTranslation = Translation.builder()
-                .isActive(true)
                 .meaning(dto.getTargetMeaning())
                 .language(dto.getTargetLanguage())
                 .lexeme(savedLexeme)

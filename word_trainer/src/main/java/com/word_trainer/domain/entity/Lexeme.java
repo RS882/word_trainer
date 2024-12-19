@@ -32,7 +32,8 @@ public class Lexeme extends EntityAudit {
     private LexemeType type;
 
     @Column(name = "is_active")
-    private Boolean isActive;
+    @Builder.Default
+    private Boolean isActive = true;
 
     @OneToMany(mappedBy = "lexeme", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Translation> translations = new HashSet<>();

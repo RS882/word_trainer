@@ -30,7 +30,6 @@ public class TranslationServiceImpl implements TranslationService {
                 .orElse(null);
         if (targetTranslation == null) {
             Translation newTargetTranslation = Translation.builder()
-                    .isActive(true)
                     .meaning(dto.getTargetMeaning())
                     .language(dto.getTargetLanguage())
                     .lexeme(lexeme)

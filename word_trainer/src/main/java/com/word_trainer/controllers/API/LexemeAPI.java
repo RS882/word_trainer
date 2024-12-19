@@ -92,6 +92,7 @@ public interface LexemeAPI {
     ResponseEntity<ResponseMessageDto> createLexemesFromFile(
             @ModelAttribute
             @Valid
+            @NotNull(message = "LexemesFileDto can not be null")
             LexemesFileDto dto);
 
     @Operation(summary = "Create new lexeme",

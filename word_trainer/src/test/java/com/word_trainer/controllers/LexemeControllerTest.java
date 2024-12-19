@@ -309,6 +309,16 @@ class LexemeControllerTest {
         }
 
         @Test
+        public void create_lexemes_by_excel_file_status_400_when_request_is_empty() throws Exception {
+            loginAdmin();
+            mockMvc.perform(multipart(LEXEME_FILE_URL)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminAccessToken))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.errors").isArray());
+        }
+
+        @Test
         public void create_lexemes_by_excel_file_status_400_when_file_format_is_wrong() throws Exception {
             loginAdmin();
             byte[] randomBytes = new byte[256];

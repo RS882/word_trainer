@@ -34,7 +34,8 @@ public class User {
     private Role role;
 
     @Column(name = "is_active")
-    private Boolean isActive;
+    @Builder.Default
+    private Boolean isActive = true;
 
     @Column(name = "login_blocked_until")
     private LocalDateTime loginBlockedUntil;
