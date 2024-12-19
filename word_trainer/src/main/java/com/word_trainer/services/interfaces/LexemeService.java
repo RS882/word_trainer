@@ -20,4 +20,6 @@ public interface LexemeService {
                                   Language targetLanguage, User currectUser);
 
     Lexeme getLexemesById(UUID lexemeId);
+
+    Lexeme createNewLexeme(LexemeDto dto);
 }

@@ -179,8 +179,9 @@ public class LexemeServiceImpl implements LexemeService {
         }
     }
 
+    @Override
     @Transactional
-    private void createNewLexeme(LexemeDto dto) {
+    public Lexeme createNewLexeme(LexemeDto dto) {
         Lexeme newLexeme = Lexeme.builder()
                 .type(dto.getType())
                 .translations(new HashSet<>())
@@ -198,7 +199,7 @@ public class LexemeServiceImpl implements LexemeService {
                 .build();
         savedLexeme.getTranslations().add(sourceTranslation);
         savedLexeme.getTranslations().add(targetTranslation);
-        repository.save(savedLexeme);
+        return repository.save(savedLexeme);
     }
 
     private void updateLexeme(Translation existingTranslation, LexemeDto dto) {

@@ -25,14 +25,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/v1/user/lexeme/result")
 public interface UserLexemeResultAPI {
 
-    @Operation(summary = "Create new user lexemes results",
-            description = "This method create new user lexemes results when user is authorized.",
+    @Operation(summary = "Upsert user lexemes results",
+            description = "This method create new or update user lexemes results when user is authorized.",
             requestBody = @RequestBody(
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserLexemeResultDto.class)))
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "User lexemes results created successfully",
+            @ApiResponse(responseCode = "200", description = "User lexemes results upsert successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ResponseMessageDto.class))),
             @ApiResponse(responseCode = "400", description = "Request is wrong",

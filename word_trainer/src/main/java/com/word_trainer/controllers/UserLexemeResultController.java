@@ -20,6 +20,7 @@ public class UserLexemeResultController implements UserLexemeResultAPI {
 
     @Override
     public ResponseEntity<ResponseMessageDto> saveOrUpdateUserLexemeResults(UserLexemeResultDto dto, User currentUser) {
+        service.saveOrUpdateUserLexemeResults(dto, currentUser);
         String messageText = "User results upsert successfully";
         log.info(messageText);
         ResponseMessageDto messageDto = new ResponseMessageDto(messageText);

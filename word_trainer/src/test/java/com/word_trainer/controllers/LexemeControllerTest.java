@@ -499,21 +499,25 @@ class LexemeControllerTest {
                     .andExpect(jsonPath("$.message", isA(String.class)));
         }
 
-        @Test
-        public void create_lexeme_by_dto_status_400_when_language_is_wrong() throws Exception {
+        @ParameterizedTest(name = "Test {index}: Get with status 400 when languages are wrong[{arguments}]")
+        @CsvSource({
+                "\"sourceLanguage\":\"EN\", \"sourceLanguage\":\"INVALID_LANGUAGE\"",
+                "\"targetLanguage\":\"DE\", \"targetLanguage\":\"INVALID_LANGUAGE\""
+        })
+        public void create_lexeme_by_dto_status_400_when_language_is_wrong(String language,
+                                                                           String wrongLanguage) throws Exception {
             loginAdmin();
             String sourceValue = "test En";
             String targetValue = "test De";
-            String invalidSourceLanguage = "INVALID_LANGUAGE";
             LexemeDto dto = LexemeDto.builder()
                     .sourceMeaning(sourceValue)
                     .targetMeaning(targetValue)
-                    .sourceLanguage(null)
+                    .sourceLanguage(Language.EN)
                     .targetLanguage(Language.DE)
                     .type(LexemeType.WORD)
                     .build();
             String jsonDto = mapper.writeValueAsString(dto)
-                    .replace("\"sourceLanguage\":null", "\"sourceLanguage\":\"" + invalidSourceLanguage + "\"");
+                    .replace(language, wrongLanguage);
 
             mockMvc.perform(multipart(LEXEME_CREATE_URL)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)

@@ -28,24 +28,22 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
     @Override
     @Transactional
     public void saveOrUpdateUserLexemeResults(UserLexemeResultDto dto, User currentUser) {
-
-        Set<UserLexemeResult> newResultsOfUser = new HashSet<>();
-
         UserLanguageInfoDto userLanguageInfoDto = UserLanguageInfoDto.builder()
                 .user(currentUser)
                 .sourceLanguage(dto.getSourceLanguage())
                 .targetLanguage(dto.getTargetLanguage())
                 .build();
 
+        Set<UserLexemeResult> newResultsOfUser = new HashSet<>();
+
         dto.getResultDtos().forEach(r -> {
 
             UserLexemeResult result = getUserLexemeResultByParams(userLanguageInfoDto, r.getLexemeId());
 
             if (result != null) {
-                result.setAttempts(result.getAttempts() + r.getAttempts());
-                result.setSuccessfulAttempts(result.getSuccessfulAttempts() + r.getSuccessfulAttempts());
+                updateAttemptsInUserLexemeResult(result, r.getAttempts(), r.getSuccessfulAttempts());
             } else {
-                UserLexemeResult newResult = createNewUserLexemeResult(r, userLanguageInfoDto);
+                UserLexemeResult newResult = buildNewUserLexemeResult(r, userLanguageInfoDto);
                 newResultsOfUser.add(newResult);
             }
         });
@@ -60,7 +58,8 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
                 .orElse(null);
     }
 
-    private UserLexemeResult createNewUserLexemeResult(UserResultsDto dto, UserLanguageInfoDto infoDto) {
+    @Override
+    public UserLexemeResult buildNewUserLexemeResult(UserResultsDto dto, UserLanguageInfoDto infoDto) {
         Lexeme lexeme = lexemeService.getLexemesById(dto.getLexemeId());
         return UserLexemeResult.builder()
                 .attempts(dto.getAttempts())
@@ -70,5 +69,10 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
                 .user(infoDto.getUser())
                 .lexeme(lexeme)
                 .build();
+    }
+
+    private void updateAttemptsInUserLexemeResult(UserLexemeResult result, int attempts, int successfulAttempts) {
+        result.setAttempts(result.getAttempts() + attempts);
+        result.setSuccessfulAttempts(result.getSuccessfulAttempts() + successfulAttempts);
     }
 }
