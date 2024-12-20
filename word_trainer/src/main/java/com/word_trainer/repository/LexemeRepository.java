@@ -15,11 +15,13 @@ public interface LexemeRepository extends JpaRepository<Lexeme, UUID> {
 
     @Query("SELECT l FROM Lexeme l " +
             "JOIN l.translations t " +
-            "WHERE t.language = :sourceLanguage OR t.language = :targetLanguage " +
+            "WHERE (t.language = :sourceLanguage OR t.language = :targetLanguage) " +
+            "AND l.id NOT IN :excludedLexemeIds " +
             "GROUP BY l.id " +
             "HAVING COUNT(DISTINCT t.language) = 2 " +
             "ORDER BY RAND()")
     List<Lexeme> findRandomLexemes(Pageable pageable,
                                    @Param("sourceLanguage") Language sourceLanguage,
-                                   @Param("targetLanguage") Language targetLanguage);
+                                   @Param("targetLanguage") Language targetLanguage,
+                                   @Param("excludedLexemeIds") List<UUID> excludedLexemeIds);
 }

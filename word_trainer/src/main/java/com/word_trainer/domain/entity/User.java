@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "\"user\"")
@@ -39,4 +41,7 @@ public class User {
 
     @Column(name = "login_blocked_until")
     private LocalDateTime loginBlockedUntil;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<UserLexemeResult> userResult;
 }
