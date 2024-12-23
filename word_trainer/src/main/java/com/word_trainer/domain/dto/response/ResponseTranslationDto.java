@@ -1,9 +1,10 @@
 package com.word_trainer.domain.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.word_trainer.constants.LexemeType;
 import com.word_trainer.constants.language.Language;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,7 +12,6 @@ import java.util.Map;
 import java.util.UUID;
 
 @Data
-@AllArgsConstructor
 @Builder
 @Schema(description = "Response DTO with translations")
 public class ResponseTranslationDto {
@@ -29,4 +29,14 @@ public class ResponseTranslationDto {
             }
             """)
     private Map<Language, Map<UUID, String>> translations;
+
+    @JsonCreator
+    public ResponseTranslationDto(
+            @JsonProperty("lexemeId") UUID lexemeId,
+            @JsonProperty("type") LexemeType type,
+            @JsonProperty("translations") Map<Language, Map<UUID, String>> translations) {
+        this.lexemeId = lexemeId;
+        this.type = type;
+        this.translations = translations;
+    }
 }

@@ -1,12 +1,12 @@
 package com.word_trainer.domain.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.word_trainer.security.contstants.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -15,6 +15,8 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"userResult"})
+@ToString(exclude = {"userResult"})
 public class User {
 
     @Id
@@ -42,6 +44,7 @@ public class User {
     @Column(name = "login_blocked_until")
     private LocalDateTime loginBlockedUntil;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<UserLexemeResult> userResult;
 }

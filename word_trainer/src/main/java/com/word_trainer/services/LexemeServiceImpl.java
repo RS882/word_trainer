@@ -30,9 +30,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 import static com.word_trainer.services.utilities.CollectionUtilities.mergeCollections;
 
@@ -45,10 +46,6 @@ public class LexemeServiceImpl implements LexemeService {
     private final TranslationService translationService;
 
     private final LexemeMapperService lexemeMapperService;
-
-    int MAX_ATTEMPTS_FOR_FILTER = 3;
-
-    double MIN_SUCCESS_RATE = 0.5;
 
     double OLD_RESULTS_PROPORTION = 0.6;
 
@@ -95,10 +92,14 @@ public class LexemeServiceImpl implements LexemeService {
                                             Language targetLanguage) {
         return user.getUserResult().stream()
                 .filter(r -> r.getSourceLanguage().equals(sourceLanguage) &&
-                        r.getTargetLanguage().equals(targetLanguage) &&
-                        (r.getAttempts() <= MAX_ATTEMPTS_FOR_FILTER ||
-                                (double) r.getSuccessfulAttempts() / r.getAttempts() <= MIN_SUCCESS_RATE))
-                .sorted(Comparator.comparing(UserLexemeResult::getUpdatedAt))
+                        r.getTargetLanguage().equals(targetLanguage))
+                .sorted(Comparator
+                        .comparing(UserLexemeResult::getUpdatedAt)
+                        .thenComparing(UserLexemeResult::getAttempts)
+                        .thenComparing(r ->
+                                r.getAttempts() == 0 ? 0 : (double) r.getSuccessfulAttempts() / r.getAttempts()
+                        )
+                )
                 .map(UserLexemeResult::getLexeme)
                 .toList();
     }

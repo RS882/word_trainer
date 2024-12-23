@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import static com.word_trainer.security.contstants.Role.ROLE_USER;
 
 
-@Mapper
+@Mapper(imports = {java.util.HashSet.class})
 public abstract class UserMapperService {
 
     @Autowired
@@ -24,6 +24,7 @@ public abstract class UserMapperService {
     @Mapping(target = "role", expression = "java(getDefaultRole())")
     @Mapping(target = "password", expression = "java(encodePassword(dto))")
     @Mapping(target = "loginBlockedUntil", expression = "java(getDefaultLoginBlockedUntil())")
+    @Mapping(target = "userResult", expression = "java(new HashSet<>())")
     public abstract User toEntity(UserRegistrationDto dto);
 
     @Mapping(target = "userName", source = "name")

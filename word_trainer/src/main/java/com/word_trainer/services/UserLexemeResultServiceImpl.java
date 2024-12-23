@@ -9,6 +9,7 @@ import com.word_trainer.domain.entity.UserLexemeResult;
 import com.word_trainer.repository.UserLexemeResultRepository;
 import com.word_trainer.services.interfaces.LexemeService;
 import com.word_trainer.services.interfaces.UserLexemeResultService;
+import com.word_trainer.services.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,8 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
     private final UserLexemeResultRepository repository;
 
     private final LexemeService lexemeService;
+
+    private final UserService userService;
 
     @Override
     @Transactional

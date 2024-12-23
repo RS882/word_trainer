@@ -1,7 +1,9 @@
 package com.word_trainer.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.word_trainer.constants.language.Language;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -13,6 +15,8 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"user"})
+@ToString(exclude = {"user"})
 public class UserLexemeResult {
 
     @Id
@@ -36,6 +40,8 @@ public class UserLexemeResult {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonBackReference
+    @NotNull
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)

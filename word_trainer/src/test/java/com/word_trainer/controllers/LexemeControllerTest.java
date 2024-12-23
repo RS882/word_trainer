@@ -4,14 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.word_trainer.constants.LexemeType;
 import com.word_trainer.constants.language.Language;
 import com.word_trainer.domain.dto.lexeme.LexemeDto;
+import com.word_trainer.domain.dto.response.ResponseLexemesDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
+import com.word_trainer.domain.entity.Lexeme;
 import com.word_trainer.domain.entity.Translation;
 import com.word_trainer.domain.entity.User;
+import com.word_trainer.domain.entity.UserLexemeResult;
 import com.word_trainer.repository.TranslationRepository;
+import com.word_trainer.repository.UserLexemeResultRepository;
 import com.word_trainer.repository.UserRepository;
 import com.word_trainer.security.contstants.Role;
 import com.word_trainer.security.domain.dto.LoginDto;
 import com.word_trainer.security.domain.dto.TokenResponseDto;
+import com.word_trainer.services.interfaces.LexemeService;
 import com.word_trainer.services.mapping.UserMapperService;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -38,12 +43,10 @@ import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.isA;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -66,6 +69,12 @@ class LexemeControllerTest {
     TranslationRepository translationRepository;
 
     @Autowired
+    private UserLexemeResultRepository userLexemeResultRepository;
+
+    @Autowired
+    private LexemeService lexemeService;
+
+    @Autowired
     private UserMapperService mapperService;
 
     private ObjectMapper mapper = new ObjectMapper();
@@ -86,7 +95,7 @@ class LexemeControllerTest {
 
     private static final String LOGIN_URL = "/v1/auth/login";
     private static final String LEXEME_FILE_URL = "/v1/lexeme/file";
-    private static final String LEXEME_CREATE_URL = "/v1/lexeme";
+    private static final String LEXEME_URL = "/v1/lexeme";
 
 
     private void loginUser1() throws Exception {
@@ -142,6 +151,39 @@ class LexemeControllerTest {
         String jsonResponse = result.getResponse().getContentAsString();
         return mapper.readValue(jsonResponse, TokenResponseDto.class);
     }
+
+    private List<Lexeme> createNewLexemes() {
+        return createNewLexemes(10);
+    }
+
+    private List<Lexeme> createNewLexemes(int count) {
+        List<Lexeme> result = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            LexemeDto dto = LexemeDto.builder()
+                    .sourceLanguage(Language.EN)
+                    .targetLanguage(Language.DE)
+                    .sourceMeaning(String.format("Test EN %d", i))
+                    .targetMeaning(String.format("Test DE %d", i))
+                    .type(LexemeType.WORD)
+                    .build();
+            result.add(lexemeService.createNewLexeme(dto));
+        }
+        return result;
+    }
+
+    private UserLexemeResult createNewUserLexemeResults(User user, Lexeme lexeme, int attempts, int successfulAttempts) {
+
+        UserLexemeResult result = UserLexemeResult.builder()
+                .sourceLanguage(Language.EN)
+                .targetLanguage(Language.DE)
+                .attempts(attempts)
+                .successfulAttempts(successfulAttempts)
+                .user(user)
+                .lexeme(lexeme)
+                .build();
+        return userLexemeResultRepository.save(result);
+    }
+
 
     @Nested
     @DisplayName("POST /v1/lexeme/file")
@@ -466,7 +508,7 @@ class LexemeControllerTest {
                     .type(LexemeType.WORD)
                     .build();
             String jsonDto = mapper.writeValueAsString(dto);
-            mockMvc.perform(multipart(LEXEME_CREATE_URL)
+            mockMvc.perform(multipart(LEXEME_URL)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(jsonDto)
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminAccessToken))
@@ -490,7 +532,7 @@ class LexemeControllerTest {
         @Test
         public void create_lexeme_by_dto_status_400_when_dto_is_null() throws Exception {
             loginAdmin();
-            mockMvc.perform(multipart(LEXEME_CREATE_URL)
+            mockMvc.perform(multipart(LEXEME_URL)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminAccessToken))
                     .andExpect(status().isBadRequest())
@@ -519,7 +561,7 @@ class LexemeControllerTest {
             String jsonDto = mapper.writeValueAsString(dto)
                     .replace(language, wrongLanguage);
 
-            mockMvc.perform(multipart(LEXEME_CREATE_URL)
+            mockMvc.perform(multipart(LEXEME_URL)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(jsonDto)
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminAccessToken))
@@ -535,7 +577,7 @@ class LexemeControllerTest {
             loginAdmin();
 
             String jsonDto = mapper.writeValueAsString(dto);
-            mockMvc.perform(multipart(LEXEME_CREATE_URL)
+            mockMvc.perform(multipart(LEXEME_URL)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(jsonDto)
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminAccessToken))
@@ -661,7 +703,7 @@ class LexemeControllerTest {
                     .type(LexemeType.WORD)
                     .build();
             String jsonDto = mapper.writeValueAsString(dto);
-            mockMvc.perform(multipart(LEXEME_CREATE_URL)
+            mockMvc.perform(multipart(LEXEME_URL)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(jsonDto)
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + "test token"))
@@ -686,12 +728,152 @@ class LexemeControllerTest {
                     .build();
             String jsonDto = mapper.writeValueAsString(dto);
 
-            mockMvc.perform(multipart(LEXEME_CREATE_URL)
+            mockMvc.perform(multipart(LEXEME_URL)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(jsonDto)
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
                     .andExpect(status().isForbidden())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.message").isNotEmpty())
+                    .andExpect(jsonPath("$.message", isA(String.class)));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /v1/lexeme")
+    class GetLexemesTests {
+
+        @ParameterizedTest(name = "Test {index}: Get lexemes with status 200 [{arguments}]")
+        @CsvSource({
+                "10, 10, 15, 8, 6",
+                "10, 10, 15, 2, 2",
+                "10, 10, 15, 14, 9",
+                "10, 5, 5, 2, 2",
+                "10, 3, 3, 0, 0",
+                "10, 10, 15, 0, 0",
+                "10, 10, 15, 15, 10",
+                "10, 0, 0, 0, 0",
+        })
+        public void get_lexemes_status_200(
+                int countOfResults,
+                int countOfRealResults,
+                int countOfLexeme,
+                int countOfLexemeWithResult,
+                int countOfNewLexeme) throws Exception {
+            loginUser1();
+            int attempts = 4;
+            int successfulAttempts = 3;
+            String sourceLanguage = "EN";
+            String targetLanguage = "DE";
+
+            User user = userRepository.findById(currentUserId1).get();
+
+            List<Lexeme> createdLexemes = createNewLexemes(countOfLexeme);
+            List<UUID> createdLexemesWithResultsIds = new ArrayList<>();
+            for (int i = 0; i < countOfLexemeWithResult; i++) {
+                UserLexemeResult createdUserLexemeResult = createNewUserLexemeResults(user,
+                        createdLexemes.get(i),
+                        attempts,
+                        successfulAttempts);
+                user.getUserResult().add(createdUserLexemeResult);
+                createdLexemesWithResultsIds.add(createdLexemes.get(i).getId());
+            }
+
+            MvcResult result = mockMvc.perform(get(LEXEME_URL)
+                            .param("count", String.valueOf(countOfResults))
+                            .param("sourceLanguage", sourceLanguage)
+                            .param("targetLanguage", targetLanguage)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.sourceLanguage", is(sourceLanguage)))
+                    .andExpect(jsonPath("$.targetLanguage", is(targetLanguage)))
+                    .andExpect(jsonPath("$.translations").isArray())
+                    .andExpect(jsonPath("$.translations", hasSize(countOfRealResults)))
+                    .andReturn();
+            String jsonResponse = result.getResponse().getContentAsString();
+            ResponseLexemesDto responseDto = mapper.readValue(jsonResponse, ResponseLexemesDto.class);
+
+            long countOfNewLexemeInReuslt = responseDto.getTranslations()
+                    .stream()
+                    .filter(t -> createdLexemesWithResultsIds.contains(t.getLexemeId()))
+                    .count();
+            assertEquals(countOfNewLexeme, countOfNewLexemeInReuslt);
+
+        }
+
+        @ParameterizedTest(name = "Test {index}: Get status 400 when parameters are wrong[{arguments}]")
+        @CsvSource({
+                "0 , EN, DE",
+                "-20, EN, DE",
+                "51, EN, DE",
+                "10, ,  DE ",
+                "10,  EN,   ",
+                "10, , ",
+        })
+        public void get_lexemes_status_400_when_request_parameters_are_wrong(
+                int countOfResults,
+                String sourceLanguage,
+                String targetLanguage
+        ) throws Exception {
+            loginUser1();
+
+            if (sourceLanguage != null && sourceLanguage.isBlank()) {
+                sourceLanguage = null;
+            }
+            if (targetLanguage != null && targetLanguage.isBlank()) {
+                targetLanguage = null;
+            }
+            mockMvc.perform(get(LEXEME_URL)
+                            .param("count", String.valueOf(countOfResults))
+                            .param("sourceLanguage", sourceLanguage)
+                            .param("targetLanguage", targetLanguage)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors").isArray());
+        }
+
+        @ParameterizedTest(name = "Test {index}: Get status 400 when languages parameters are wrong[{arguments}]")
+        @CsvSource({
+                "Test1, DE",
+                "EN, Test1",
+                "Test1, Test2",
+        })
+        public void get_lexemes_status_400_when_request_languages_parameters_are_wrong(
+                String sourceLanguage,
+                String targetLanguage
+        ) throws Exception {
+            loginUser1();
+            int countOfResults = 10;
+            mockMvc.perform(get(LEXEME_URL)
+                            .param("count", String.valueOf(countOfResults))
+                            .param("sourceLanguage", sourceLanguage)
+                            .param("targetLanguage", targetLanguage)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").isNotEmpty())
+                    .andExpect(jsonPath("$.message", isA(String.class)));
+        }
+
+        @Test
+        public void get_lexemes_status_401_when_user_is_not_authorized() throws Exception {
+            int countOfResults = 10;
+            String sourceLanguage = "EN";
+            String targetLanguage = "DE";
+
+            mockMvc.perform(get(LEXEME_URL)
+                            .param("count", String.valueOf(countOfResults))
+                            .param("sourceLanguage", sourceLanguage)
+                            .param("targetLanguage", targetLanguage)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + "Test Token"))
+                    .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.message").isNotEmpty())
                     .andExpect(jsonPath("$.message", isA(String.class)));
         }

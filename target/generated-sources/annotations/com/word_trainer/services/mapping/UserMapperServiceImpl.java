@@ -3,12 +3,13 @@ package com.word_trainer.services.mapping;
 import com.word_trainer.domain.dto.users.UserDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
 import com.word_trainer.domain.entity.User;
+import java.util.HashSet;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-12-19T14:38:20+0100",
+    date = "2024-12-22T14:13:51+0100",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.12 (Oracle Corporation)"
 )
 @Component
@@ -28,6 +29,7 @@ public class UserMapperServiceImpl extends UserMapperService {
         user.role( getDefaultRole() );
         user.password( encodePassword(dto) );
         user.loginBlockedUntil( getDefaultLoginBlockedUntil() );
+        user.userResult( new HashSet<>() );
 
         return user.build();
     }
