@@ -164,7 +164,7 @@ public interface LexemeAPI {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lexemes get successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ResponseMessageDto.class))),
+                            schema = @Schema(implementation = ResponseLexemesDto.class))),
             @ApiResponse(responseCode = "400", description = "Request is wrong",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(
