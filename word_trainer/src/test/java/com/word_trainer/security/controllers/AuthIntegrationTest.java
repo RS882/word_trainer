@@ -63,7 +63,6 @@ class AuthIntegrationTest {
     private static final String USER1_PASSWORD = "Querty123!";
     private static final String TEST_USER_NAME_1 = "TestName1";
 
-
     private final String LOGIN_URL = "/v1/auth/login";
     private final String REFRESH_URL = "/v1/auth/refresh";
     private final String VALIDATION_URL = "/v1/auth/validation";
