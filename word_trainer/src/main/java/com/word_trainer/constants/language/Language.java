@@ -4,5 +4,5 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(using = LanguageDeserializer.class)
 public enum Language {
-    EN, DE, RU
+    EN, DE, UKR, RU
 }

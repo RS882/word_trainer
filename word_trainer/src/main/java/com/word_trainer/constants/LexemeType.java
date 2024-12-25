@@ -1,5 +1,5 @@
 package com.word_trainer.constants;
 
 public enum LexemeType {
-    WORD, PHRASE
+    WORD, PHRASE, EXPRESSION
 }
