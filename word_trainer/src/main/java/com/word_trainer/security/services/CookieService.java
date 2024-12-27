@@ -9,20 +9,22 @@ import org.springframework.stereotype.Service;
 public class CookieService {
 
     @Value("${expires.refresh}")
-    private static int expiresRefreshInMinutes;
+    private  int expiresRefreshInMinutes;
 
     public static final String COOKIE_REFRESH_TOKEN_NAME = "Refresh-token";
 
     public void setRefreshTokenToCookie(HttpServletResponse response, String refreshToken) {
+        int rrr = expiresRefreshInMinutes;
         Cookie cookie = makeCookie(COOKIE_REFRESH_TOKEN_NAME, refreshToken);
         response.addCookie(cookie);
     }
 
-    public static Cookie makeCookie(String name, String value) {
+    public  Cookie makeCookie(String name, String value) {
         Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        //TODO for https - make secure true
+        cookie.setSecure(false);
         cookie.setMaxAge(expiresRefreshInMinutes * 60);
         return cookie;
     }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
 import com.word_trainer.repository.UserRepository;
 import com.word_trainer.security.domain.dto.LoginDto;
+import com.word_trainer.security.services.CookieService;
 import com.word_trainer.security.services.TokenService;
 import com.word_trainer.services.mapping.UserMapperService;
 import jakarta.servlet.http.Cookie;
@@ -28,7 +29,7 @@ import java.util.stream.Stream;
 
 import static com.word_trainer.security.services.AuthServiceImpl.MAX_COUNT_OF_LOGINS;
 import static com.word_trainer.security.services.CookieService.COOKIE_REFRESH_TOKEN_NAME;
-import static com.word_trainer.security.services.CookieService.makeCookie;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -51,6 +52,9 @@ class AuthIntegrationTest {
 
     @Autowired
     private UserMapperService mapperService;
+
+    @Autowired
+    private CookieService cookieService;
 
     @Autowired
     private TokenService tokenService;
@@ -296,7 +300,7 @@ class AuthIntegrationTest {
 
         @Test
         public void refresh_with_status_400_cookie_is_incorrect() throws Exception {
-            Cookie cookie = makeCookie("test", "test");
+            Cookie cookie = cookieService.makeCookie("test", "test");
             mockMvc.perform(get(REFRESH_URL)
                             .cookie(cookie))
                     .andExpect(status().isBadRequest());
@@ -304,7 +308,7 @@ class AuthIntegrationTest {
 
         @Test
         public void refresh_with_status_401_token_is_incorrect() throws Exception {
-            Cookie cookie = makeCookie(COOKIE_REFRESH_TOKEN_NAME, "test");
+            Cookie cookie = cookieService.makeCookie(COOKIE_REFRESH_TOKEN_NAME, "test");
             mockMvc.perform(get(REFRESH_URL)
                             .cookie(cookie))
                     .andExpect(status().isUnauthorized());
