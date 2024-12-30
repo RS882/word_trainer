@@ -21,11 +21,12 @@ public class UserRegistrationDto {
 
     @Schema(description = "User password", example = "136Jkn!kPu5%")
     @Pattern(
-            regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$",
-            message = "Password should include at least one letter (A-Z or a-z), one digit (0-9), one special character (@, #, $, %, ^, &, +, =, !), have no spaces, and be at least 8 characters long"
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@#$%^&+=!])(?=\\S+$).{8,20}$",
+            message = "Password should include at least one letter (A-Z or a-z)," +
+                    " one digit (0-9), one special character (@, #, $, %, ^, &, +, =, !)," +
+                    " have no spaces,no less than 8 characters and no more than 20"
     )
     @NotBlank(message = "Password cannot be empty")
-    @Size(min = 3, max = 20, message = "Password must be between 3 and 20 characters")
     private String password;
 
     @Schema(description = "User name", example = "John")
