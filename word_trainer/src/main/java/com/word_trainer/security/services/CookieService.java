@@ -14,7 +14,6 @@ public class CookieService {
     public static final String COOKIE_REFRESH_TOKEN_NAME = "Refresh-token";
 
     public void setRefreshTokenToCookie(HttpServletResponse response, String refreshToken) {
-        int rrr = expiresRefreshInMinutes;
         Cookie cookie = makeCookie(COOKIE_REFRESH_TOKEN_NAME, refreshToken);
         response.addCookie(cookie);
     }

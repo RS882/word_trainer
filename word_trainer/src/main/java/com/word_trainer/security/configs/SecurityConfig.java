@@ -3,6 +3,7 @@ package com.word_trainer.security.configs;
 
 import com.word_trainer.security.configs.configs_components.CustomAccessDeniedHandler;
 import com.word_trainer.security.configs.configs_components.CustomAuthenticationEntryPoint;
+import com.word_trainer.security.filters.CookieLoggingFilter;
 import com.word_trainer.security.filters.ValidationFilter;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -25,6 +26,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final ValidationFilter validationFilter;
+
+    private final CookieLoggingFilter cookieLoggingFilter;
 
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
@@ -51,6 +54,7 @@ public class SecurityConfig {
                         .anyRequest().denyAll()
                 )
                 .addFilterBefore(validationFilter, UsernamePasswordAuthenticationFilter.class)
+//                .addFilterBefore(cookieLoggingFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
