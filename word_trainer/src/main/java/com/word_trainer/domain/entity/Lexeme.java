@@ -35,6 +35,6 @@ public class Lexeme extends EntityAudit {
     @Builder.Default
     private Boolean isActive = true;
 
-    @OneToMany(mappedBy = "lexeme", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "lexeme", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Translation> translations = new HashSet<>();
 }
