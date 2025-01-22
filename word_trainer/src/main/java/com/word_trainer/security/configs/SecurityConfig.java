@@ -39,14 +39,19 @@ public class SecurityConfig {
                         s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/v1/user/registration").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/user/me").authenticated()
+
                         .requestMatchers(HttpMethod.POST, "/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/auth/validation").authenticated()
                         .requestMatchers(HttpMethod.GET, "/v1/auth/logout").authenticated()
+
                         .requestMatchers(HttpMethod.POST, "/v1/lexeme/file").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/v1/lexeme").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/v1/lexeme").authenticated()
+
                         .requestMatchers(HttpMethod.POST, "/v1/user/lexeme/result").authenticated()
                         .anyRequest().denyAll()
                 )

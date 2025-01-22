@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
 @Data
 @SuperBuilder
 @NoArgsConstructor
@@ -24,4 +26,7 @@ public class UserDto {
 
     @Schema(description = "User email", example = "example@gmail.com")
     private String email;
+
+    @Schema(description = "Roles of user", example = "[USER_ROLE]")
+    List<String> roles;
 }

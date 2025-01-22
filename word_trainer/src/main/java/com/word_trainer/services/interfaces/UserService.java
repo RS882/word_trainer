@@ -11,4 +11,6 @@ public interface UserService {
     User getUserByEmail(String email);
 
     User saveUser(User user);
+
+    UserDto geCurrentUserInfo(User currentUser);
 }

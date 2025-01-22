@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 import static com.word_trainer.security.contstants.Role.ROLE_USER;
 
@@ -29,6 +31,7 @@ public abstract class UserMapperService {
 
     @Mapping(target = "userName", source = "name")
     @Mapping(target = "userId", source = "id")
+    @Mapping(target = "roles", expression = "java(getRolesAsStringList(user.getRole()))")
     public abstract UserDto toDto(User user);
 
     protected Role getDefaultRole() {
@@ -41,5 +44,9 @@ public abstract class UserMapperService {
 
     protected LocalDateTime getDefaultLoginBlockedUntil() {
         return LocalDateTime.now();
+    }
+
+    protected List<String> getRolesAsStringList(Role role) {
+        return Collections.singletonList(role.name());
     }
 }

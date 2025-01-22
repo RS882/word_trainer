@@ -67,6 +67,7 @@ public class LexemeServiceImpl implements LexemeService {
                 currectUser,
                 sourceLanguage,
                 targetLanguage);
+
         List<UUID> lexemesIdWithResult = lexemesWithResult.stream()
                 .map(Lexeme::getId)
                 .toList();
@@ -92,7 +93,9 @@ public class LexemeServiceImpl implements LexemeService {
                                             Language targetLanguage) {
         return user.getUserResult().stream()
                 .filter(r -> r.getSourceLanguage().equals(sourceLanguage) &&
-                        r.getTargetLanguage().equals(targetLanguage))
+                        r.getTargetLanguage().equals(targetLanguage) &&
+                        r.getIsActive()
+                )
                 .sorted(Comparator
                         .comparing(UserLexemeResult::getUpdatedAt)
                         .thenComparing(UserLexemeResult::getAttempts)

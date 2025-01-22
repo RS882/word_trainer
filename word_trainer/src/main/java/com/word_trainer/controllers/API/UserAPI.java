@@ -4,8 +4,10 @@ package com.word_trainer.controllers.API;
 import com.word_trainer.domain.dto.response.ResponseMessageDto;
 import com.word_trainer.domain.dto.users.UserDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
+import com.word_trainer.domain.entity.User;
 import com.word_trainer.exception_handler.dto.ValidationErrorsDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,6 +18,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -71,4 +75,30 @@ public interface UserAPI {
             @org.springframework.web.bind.annotation.RequestBody
             @Valid
             UserRegistrationDto userRegistrationDto);
+
+    @Operation(summary = "Get information about the current user.",
+            description = "This method get general information about the current user.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Users information sent successful",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UserDto.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized user",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ResponseMessageDto.class)
+                    )),
+            @ApiResponse(responseCode = "500",
+                    description = "Server error",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ResponseMessageDto.class)
+                    )),
+    })
+    @GetMapping("/me")
+    ResponseEntity<UserDto> getMeInfo(
+            @AuthenticationPrincipal
+            @Parameter(hidden = true)
+            User currentUser
+    );
 }
