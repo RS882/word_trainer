@@ -30,10 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static com.word_trainer.services.utilities.CollectionUtilities.mergeCollections;
 
@@ -68,16 +65,22 @@ public class LexemeServiceImpl implements LexemeService {
                 sourceLanguage,
                 targetLanguage);
 
-        List<UUID> lexemesIdWithResult = lexemesWithResult.stream()
-                .map(Lexeme::getId)
-                .toList();
+        List<UUID> excludedLexemeIds = new ArrayList<>(
+                lexemesWithResult.stream()
+                        .map(Lexeme::getId)
+                        .toList()
+        );
+        excludedLexemeIds.addAll(getIdInactiveLexeme(
+                currectUser,
+                sourceLanguage,
+                targetLanguage));
 
         Pageable pageable = PageRequest.of(0, count);
         List<Lexeme> lexemesWithoutResult = repository.findRandomLexemes(
                 pageable,
                 sourceLanguage,
                 targetLanguage,
-                lexemesIdWithResult);
+                excludedLexemeIds);
 
         List<Lexeme> lexemes = mergeCollections(
                 lexemesWithResult,
@@ -104,6 +107,17 @@ public class LexemeServiceImpl implements LexemeService {
                         )
                 )
                 .map(UserLexemeResult::getLexeme)
+                .toList();
+    }
+    private List<UUID> getIdInactiveLexeme(User user,
+                                           Language sourceLanguage,
+                                           Language targetLanguage){
+        return user.getUserResult().stream()
+                .filter(r-> r.getSourceLanguage().equals(sourceLanguage) &&
+                r.getTargetLanguage().equals(targetLanguage) &&
+                !r.getIsActive()
+                )
+                .map(UserLexemeResult::getId)
                 .toList();
     }
 

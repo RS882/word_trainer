@@ -39,6 +39,7 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -211,6 +212,7 @@ class UserLexemeResultControllerTest {
                         .lexemeId(createdLexemes.get(i).getId())
                         .attempts(3)
                         .successfulAttempts(2)
+                        .isActive(false)
                         .build();
                 userResultsDtoSet.add(dto);
             }
@@ -237,6 +239,7 @@ class UserLexemeResultControllerTest {
             AtomicInteger countUpdateResult = new AtomicInteger();
             AtomicInteger countCreateResult = new AtomicInteger();
             upsertedResult.forEach(r -> {
+                assertFalse(r.getIsActive());
                 if (r.getAttempts() == 9 && r.getSuccessfulAttempts() == 5) {
                     countUpdateResult.getAndIncrement();
                 }

@@ -21,6 +21,9 @@ public class UserResultsDto {
     @NotNull(message = "Id cannot be null")
     private UUID lexemeId;
 
+    @Schema(description = "Is lexeme active for user", example = "true")
+    private Boolean isActive;
+
     @Schema(description = "Count of attempts", example = "4")
     @Min(value = 1, message = "Attempts cannot be greater 0")
     private int attempts;

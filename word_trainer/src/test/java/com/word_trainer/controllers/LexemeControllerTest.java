@@ -770,6 +770,7 @@ class LexemeControllerTest {
 
             List<Lexeme> createdLexemes = createNewLexemes(countOfLexeme);
             List<UUID> createdLexemesWithResultsIds = new ArrayList<>();
+            UUID idInActiveLexemeResult = null;
             for (int i = 0; i < countOfLexemeWithResult; i++) {
                 UserLexemeResult createdUserLexemeResult = createNewUserLexemeResults(user,
                         createdLexemes.get(i),
@@ -778,7 +779,6 @@ class LexemeControllerTest {
                 user.getUserResult().add(createdUserLexemeResult);
                 createdLexemesWithResultsIds.add(createdLexemes.get(i).getId());
             }
-
             MvcResult result = mockMvc.perform(get(LEXEME_URL)
                             .param("count", String.valueOf(countOfResults))
                             .param("sourceLanguage", sourceLanguage)
@@ -795,12 +795,12 @@ class LexemeControllerTest {
             String jsonResponse = result.getResponse().getContentAsString();
             ResponseLexemesDto responseDto = mapper.readValue(jsonResponse, ResponseLexemesDto.class);
 
-            long countOfNewLexemeInReuslt = responseDto.getTranslations()
+            long countOfNewLexemeInResult = responseDto.getTranslations()
                     .stream()
                     .filter(t -> createdLexemesWithResultsIds.contains(t.getLexemeId()))
                     .count();
-            assertEquals(countOfNewLexeme, countOfNewLexemeInReuslt);
 
+            assertEquals(countOfNewLexeme, countOfNewLexemeInResult);
         }
 
         @ParameterizedTest(name = "Test {index}: Get status 400 when parameters are wrong[{arguments}]")

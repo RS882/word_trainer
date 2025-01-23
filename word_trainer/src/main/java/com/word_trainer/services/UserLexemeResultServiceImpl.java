@@ -9,7 +9,6 @@ import com.word_trainer.domain.entity.UserLexemeResult;
 import com.word_trainer.repository.UserLexemeResultRepository;
 import com.word_trainer.services.interfaces.LexemeService;
 import com.word_trainer.services.interfaces.UserLexemeResultService;
-import com.word_trainer.services.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,8 +24,6 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
     private final UserLexemeResultRepository repository;
 
     private final LexemeService lexemeService;
-
-    private final UserService userService;
 
     @Override
     @Transactional
@@ -44,7 +41,7 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
             UserLexemeResult result = getUserLexemeResultByParams(userLanguageInfoDto, r.getLexemeId());
 
             if (result != null) {
-                updateAttemptsInUserLexemeResult(result, r.getAttempts(), r.getSuccessfulAttempts());
+                updateAttemptsInUserLexemeResult(result, r);
             } else {
                 UserLexemeResult newResult = buildNewUserLexemeResult(r, userLanguageInfoDto);
                 newResultsOfUser.add(newResult);
@@ -61,8 +58,8 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
                 .orElse(null);
     }
 
-    @Override
-    public UserLexemeResult buildNewUserLexemeResult(UserResultsDto dto, UserLanguageInfoDto infoDto) {
+
+    private UserLexemeResult buildNewUserLexemeResult(UserResultsDto dto, UserLanguageInfoDto infoDto) {
         Lexeme lexeme = lexemeService.getLexemesById(dto.getLexemeId());
         return UserLexemeResult.builder()
                 .attempts(dto.getAttempts())
@@ -70,12 +67,17 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
                 .sourceLanguage(infoDto.getSourceLanguage())
                 .targetLanguage(infoDto.getTargetLanguage())
                 .user(infoDto.getUser())
+                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
                 .lexeme(lexeme)
                 .build();
     }
 
-    private void updateAttemptsInUserLexemeResult(UserLexemeResult result, int attempts, int successfulAttempts) {
-        result.setAttempts(result.getAttempts() + attempts);
-        result.setSuccessfulAttempts(result.getSuccessfulAttempts() + successfulAttempts);
+    private void updateAttemptsInUserLexemeResult(UserLexemeResult result,
+                                                  UserResultsDto dto) {
+        result.setAttempts(result.getAttempts() + dto.getAttempts());
+        result.setSuccessfulAttempts(result.getSuccessfulAttempts() + dto.getSuccessfulAttempts());
+        if (dto.getIsActive() != null) {
+            result.setIsActive(dto.getIsActive());
+        }
     }
 }
