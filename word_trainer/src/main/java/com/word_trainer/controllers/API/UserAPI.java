@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "User Controller", description = "Controller for CRUD operation with user")
-@RequestMapping("/v1/user")
+@RequestMapping("/v1/users")
 public interface UserAPI {
 
     @Operation(summary = "Create new user",

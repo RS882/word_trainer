@@ -94,8 +94,8 @@ class LexemeControllerTest {
     private static final String TEST_ADMIN_NAME = "Admin TestName";
 
     private static final String LOGIN_URL = "/v1/auth/login";
-    private static final String LEXEME_FILE_URL = "/v1/lexeme/file";
-    private static final String LEXEME_URL = "/v1/lexeme";
+    private static final String LEXEME_FILE_URL = "/v1/lexemes/files";
+    private static final String LEXEME_URL = "/v1/lexemes";
 
 
     private void loginUser1() throws Exception {
@@ -186,7 +186,7 @@ class LexemeControllerTest {
 
 
     @Nested
-    @DisplayName("POST /v1/lexeme/file")
+    @DisplayName("POST " + LEXEME_FILE_URL)
     class CreateLexemesByFileTests {
 
         @ParameterizedTest
@@ -489,7 +489,7 @@ class LexemeControllerTest {
     }
 
     @Nested
-    @DisplayName("POST /v1/lexeme")
+    @DisplayName("POST " + LEXEME_URL)
     class CreateLexemeByDtoTests {
 
         @Test
@@ -740,7 +740,7 @@ class LexemeControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /v1/lexeme")
+    @DisplayName("GET " + LEXEME_URL)
     class GetLexemesTests {
 
         @ParameterizedTest(name = "Test {index}: Get lexemes with status 200 [{arguments}]")

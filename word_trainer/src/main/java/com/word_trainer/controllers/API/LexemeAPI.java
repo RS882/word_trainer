@@ -26,7 +26,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Lexeme Controller", description = "Controller for CRUD operation with lexemes")
-@RequestMapping("/v1/lexeme")
+@RequestMapping("/v1/lexemes")
 public interface LexemeAPI {
 
     @Operation(summary = "Create new lexemes by excel file",
@@ -88,7 +88,7 @@ public interface LexemeAPI {
                             schema = @Schema(implementation = ResponseMessageDto.class)
                     ))
     })
-    @PostMapping("/file")
+    @PostMapping("/files")
     ResponseEntity<ResponseMessageDto> createLexemesFromFile(
             @ModelAttribute
             @Valid

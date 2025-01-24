@@ -93,7 +93,7 @@ class UserLexemeResultControllerTest {
     private static final String TEST_ADMIN_NAME = "Admin TestName";
 
     private static final String LOGIN_URL = "/v1/auth/login";
-    private static final String USER_LEXEMES_RESULT_URL = "/v1/user/lexeme/result";
+    private static final String USER_LEXEMES_RESULT_URL = "/v1/users/lexemes/results";
 
     private void loginUser1() throws Exception {
         TokenResponseDto responseDto = loginUser(USER1_EMAIL, TEST_USER_NAME_1, USER1_PASSWORD);
@@ -188,7 +188,7 @@ class UserLexemeResultControllerTest {
     }
 
     @Nested
-    @DisplayName("POST /v1/user/lexeme/result")
+    @DisplayName("POST " + USER_LEXEMES_RESULT_URL)
     public class UpsertUserLexemeResultTests {
 
         @Test

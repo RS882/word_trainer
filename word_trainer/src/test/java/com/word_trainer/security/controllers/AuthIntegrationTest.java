@@ -138,7 +138,7 @@ class AuthIntegrationTest {
     }
 
     @Nested
-    @DisplayName("POST /v1/auth/login")
+    @DisplayName("POST " + LOGIN_URL)
     class Login {
 
         @Test
@@ -278,7 +278,7 @@ class AuthIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /v1/auth/refresh")
+    @DisplayName("GET " + REFRESH_URL)
     class Refresh {
 
         @Test
@@ -326,7 +326,7 @@ class AuthIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /v1/auth/validation")
+    @DisplayName("GET " + VALIDATION_URL)
     class Validation {
 
         @Test
@@ -356,7 +356,7 @@ class AuthIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /v1/auth/logout")
+    @DisplayName("GET " +LOGOUT_URL)
     class Logout {
 
         @Test

@@ -2,11 +2,9 @@ package com.word_trainer.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
-import com.word_trainer.repository.UserLexemeResultRepository;
 import com.word_trainer.repository.UserRepository;
 import com.word_trainer.security.domain.dto.LoginDto;
 import com.word_trainer.security.domain.dto.TokenResponseDto;
-import com.word_trainer.services.interfaces.LexemeService;
 import com.word_trainer.services.mapping.UserMapperService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,8 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -52,8 +50,8 @@ class UserControllerTest {
     private ObjectMapper mapper = new ObjectMapper();
 
     private static final String LOGIN_URL = "/v1/auth/login";
-    private final String USER_REGISTRATION_PATH = "/v1/user/registration";
-    private final String USER_ME_PATH = "/v1/user/me";
+    private final String USER_REGISTRATION_PATH = "/v1/users/registration";
+    private final String USER_ME_PATH = "/v1/users/me";
 
     private String accessToken1;
     private Long currentUserId1;
@@ -93,7 +91,7 @@ class UserControllerTest {
     }
 
     @Nested
-    @DisplayName("POST /v1/user/registration")
+    @DisplayName("POST " + USER_REGISTRATION_PATH)
     class RegistrationUserTest {
 
         @Test
@@ -241,7 +239,7 @@ class UserControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /v1/user/me")
+    @DisplayName("GET " + USER_ME_PATH)
     class GetMeInfoTest {
 
         @Test
@@ -249,7 +247,7 @@ class UserControllerTest {
             loginUser1();
 
             mockMvc.perform(get(USER_ME_PATH)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.userName", is(TEST_USER_NAME_1)))

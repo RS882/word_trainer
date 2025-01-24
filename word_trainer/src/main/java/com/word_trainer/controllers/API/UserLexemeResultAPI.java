@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "User LexemeResult Controller", description = "Controller for CRUD operation with results user")
-@RequestMapping("/v1/user/lexeme/result")
+@RequestMapping("/v1/users/lexemes/results")
 public interface UserLexemeResultAPI {
 
     @Operation(summary = "Upsert user lexemes results",
