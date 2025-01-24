@@ -52,7 +52,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/lexemes").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/v1/lexemes").authenticated()
 
-                        .requestMatchers(HttpMethod.POST, "/v1/users/lexemes/results").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/v1/users/lexeme-results").authenticated()
                         .anyRequest().denyAll()
                 )
                 .addFilterBefore(validationFilter, UsernamePasswordAuthenticationFilter.class)
