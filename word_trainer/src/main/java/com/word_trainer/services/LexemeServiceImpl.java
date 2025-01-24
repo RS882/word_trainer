@@ -65,15 +65,20 @@ public class LexemeServiceImpl implements LexemeService {
                 sourceLanguage,
                 targetLanguage);
 
+        List<UUID> lexemesWithResultIds = lexemesWithResult.stream()
+                .map(Lexeme::getId)
+                .toList();
+
         List<UUID> excludedLexemeIds = new ArrayList<>(
-                lexemesWithResult.stream()
-                        .map(Lexeme::getId)
-                        .toList()
+                lexemesWithResultIds
         );
-        excludedLexemeIds.addAll(getIdInactiveLexeme(
+
+        List<UUID> inactiveLexemesIds = getIdInactiveLexeme(
                 currectUser,
                 sourceLanguage,
-                targetLanguage));
+                targetLanguage);
+
+        excludedLexemeIds.addAll(inactiveLexemesIds);
 
         Pageable pageable = PageRequest.of(0, count);
         List<Lexeme> lexemesWithoutResult = repository.findRandomLexemes(
@@ -117,7 +122,7 @@ public class LexemeServiceImpl implements LexemeService {
                 r.getTargetLanguage().equals(targetLanguage) &&
                 !r.getIsActive()
                 )
-                .map(UserLexemeResult::getId)
+                .map(t->t.getLexeme().getId())
                 .toList();
     }
 

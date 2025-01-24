@@ -779,6 +779,16 @@ class LexemeControllerTest {
                 user.getUserResult().add(createdUserLexemeResult);
                 createdLexemesWithResultsIds.add(createdLexemes.get(i).getId());
             }
+            UserLexemeResult createdUserLexemeResultInactive = createNewUserLexemeResults(user,
+                    createNewLexemes(1).get(0),
+                    28,
+                    25);
+
+            createdUserLexemeResultInactive.setIsActive(false);
+            idInActiveLexemeResult = createdUserLexemeResultInactive.getLexeme().getId();
+            user.getUserResult().add(createdUserLexemeResultInactive);
+            createdLexemesWithResultsIds.add(idInActiveLexemeResult);
+
             MvcResult result = mockMvc.perform(get(LEXEME_URL)
                             .param("count", String.valueOf(countOfResults))
                             .param("sourceLanguage", sourceLanguage)
@@ -800,6 +810,12 @@ class LexemeControllerTest {
                     .filter(t -> createdLexemesWithResultsIds.contains(t.getLexemeId()))
                     .count();
 
+            UUID finalIdInActiveLexemeResult = idInActiveLexemeResult;
+            long countOfInactiveLexemeResults = responseDto.getTranslations()
+                    .stream()
+                    .filter(t -> t.getLexemeId() == finalIdInActiveLexemeResult)
+                    .count();
+            assertEquals(0, countOfInactiveLexemeResults);
             assertEquals(countOfNewLexeme, countOfNewLexemeInResult);
         }
 
