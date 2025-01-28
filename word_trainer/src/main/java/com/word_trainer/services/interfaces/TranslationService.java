@@ -5,9 +5,11 @@ import com.word_trainer.domain.dto.lexeme.LexemeDto;
 import com.word_trainer.domain.entity.Lexeme;
 import com.word_trainer.domain.entity.Translation;
 
+import java.util.List;
+
 public interface TranslationService {
 
-    Translation getTranslationByMeaning(String meaning, Language language);
+    List<Translation> getTranslationsByMeaning(String meaning, Language language);
 
     void updateTargetTranslation(LexemeDto dto, Lexeme lexeme);
 }

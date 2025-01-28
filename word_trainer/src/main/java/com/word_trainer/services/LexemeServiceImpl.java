@@ -114,15 +114,16 @@ public class LexemeServiceImpl implements LexemeService {
                 .map(UserLexemeResult::getLexeme)
                 .toList();
     }
+
     private List<UUID> getIdInactiveLexeme(User user,
                                            Language sourceLanguage,
-                                           Language targetLanguage){
+                                           Language targetLanguage) {
         return user.getUserResult().stream()
-                .filter(r-> r.getSourceLanguage().equals(sourceLanguage) &&
-                r.getTargetLanguage().equals(targetLanguage) &&
-                !r.getIsActive()
+                .filter(r -> r.getSourceLanguage().equals(sourceLanguage) &&
+                        r.getTargetLanguage().equals(targetLanguage) &&
+                        !r.getIsActive()
                 )
-                .map(t->t.getLexeme().getId())
+                .map(t -> t.getLexeme().getId())
                 .toList();
     }
 
@@ -233,12 +234,12 @@ public class LexemeServiceImpl implements LexemeService {
     }
 
     private void createLexemeByLexemeDto(LexemeDto dto) {
-        Translation existingTranslation = translationService
-                .getTranslationByMeaning(dto.getSourceMeaning(), dto.getSourceLanguage());
-        if (existingTranslation == null) {
+        List<Translation> existingTranslations = translationService
+                .getTranslationsByMeaning(dto.getSourceMeaning(), dto.getSourceLanguage());
+        if (existingTranslations.isEmpty()) {
             createNewLexeme(dto);
         } else {
-            updateLexeme(existingTranslation, dto);
+            updateLexeme(existingTranslations, dto);
         }
     }
 
@@ -265,8 +266,10 @@ public class LexemeServiceImpl implements LexemeService {
         return repository.save(savedLexeme);
     }
 
-    private void updateLexeme(Translation existingTranslation, LexemeDto dto) {
-        Lexeme currentLexeme = existingTranslation.getLexeme();
-        translationService.updateTargetTranslation(dto, currentLexeme);
+    private void updateLexeme(List<Translation> existingTranslations, LexemeDto dto) {
+        existingTranslations.forEach(t -> {
+            Lexeme currentLexeme = t.getLexeme();
+            translationService.updateTargetTranslation(dto, currentLexeme);
+        });
     }
 }

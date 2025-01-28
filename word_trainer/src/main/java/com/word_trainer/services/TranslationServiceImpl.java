@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -18,17 +20,15 @@ public class TranslationServiceImpl implements TranslationService {
     private final TranslationRepository repository;
 
     @Override
-    public Translation getTranslationByMeaning(String meaning, Language language) {
-        return repository.findByMeaningAndLanguage(meaning, language)
-                .orElse(null);
+    public List<Translation> getTranslationsByMeaning(String meaning, Language language) {
+        return repository.findByMeaningAndLanguage(meaning, language);
     }
 
     @Override
     @Transactional
     public void updateTargetTranslation(LexemeDto dto, Lexeme lexeme) {
-        Translation targetTranslation = repository.findByLexemeAndLanguage(lexeme, dto.getTargetLanguage())
-                .orElse(null);
-        if (targetTranslation == null) {
+        List<Translation> targetTranslations = repository.findByLexemeAndLanguage(lexeme, dto.getTargetLanguage());
+        if (targetTranslations.isEmpty()) {
             Translation newTargetTranslation = Translation.builder()
                     .meaning(dto.getTargetMeaning())
                     .language(dto.getTargetLanguage())
@@ -36,11 +36,13 @@ public class TranslationServiceImpl implements TranslationService {
                     .build();
             repository.save(newTargetTranslation);
         } else {
-            String currentMeaning = targetTranslation.getMeaning();
             String dtoTargetMeaning = dto.getTargetMeaning();
-            if (!currentMeaning.equals(dtoTargetMeaning)) {
-                targetTranslation.setMeaning(currentMeaning + ", " + dtoTargetMeaning);
-            }
+            targetTranslations.forEach(t -> {
+                String currentMeaning = t.getMeaning();
+                if (!currentMeaning.equals(dtoTargetMeaning)) {
+                    t.setMeaning(currentMeaning + ", " + dtoTargetMeaning);
+                }
+            });
         }
     }
 }

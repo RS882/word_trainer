@@ -37,7 +37,7 @@ public class Translation extends EntityAudit {
     @Builder.Default
     private Boolean isActive = true;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lexeme_id")
     private Lexeme lexeme;
 }
