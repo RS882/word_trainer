@@ -42,9 +42,10 @@ public class ValidationFilter extends OncePerRequestFilter {
         if (tokenService.validateAccessToken(accessToken)) {
             Claims claims = tokenService.getAccessTokenClaims(accessToken);
             AuthInfo authInfo = authInfoService.mapClaims(claims);
-            authInfo.setAuthenticated(true);
-
-            SecurityContextHolder.getContext().setAuthentication(authInfo);
+            if(authInfo != null){
+                authInfo.setAuthenticated(true);
+                SecurityContextHolder.getContext().setAuthentication(authInfo);
+            }
         }
         filterChain.doFilter(request, response);
     }

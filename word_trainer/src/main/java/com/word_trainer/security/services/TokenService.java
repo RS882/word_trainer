@@ -36,6 +36,7 @@ public class TokenService {
 
     public static final String USER_ROLE_VARIABLE_NAME = "role";
     public static final String USER_EMAIL_VARIABLE_NAME = "email";
+    public static final String USER_NAME_VARIABLE_NAME = "name";
 
     private static final String TOKENS_ISSUER = "Authorization";
 
@@ -103,6 +104,7 @@ public class TokenService {
                 .signWith(ACCESS_KEY)
                 .claim(USER_ROLE_VARIABLE_NAME, user.getRole())
                 .claim(USER_EMAIL_VARIABLE_NAME, user.getEmail())
+                .claim(USER_NAME_VARIABLE_NAME, user.getName())
                 .compact();
     }
 

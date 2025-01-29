@@ -2,6 +2,7 @@ package com.word_trainer.services.mapping;
 
 import com.word_trainer.domain.dto.users.UserDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
+import com.word_trainer.domain.dto.users.UserUpdateDto;
 import com.word_trainer.domain.entity.User;
 import java.util.HashSet;
 import javax.annotation.processing.Generated;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-01-23T14:09:19+0100",
+    date = "2025-01-29T14:09:21+0100",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.12 (Oracle Corporation)"
 )
 @Component
@@ -49,5 +50,18 @@ public class UserMapperServiceImpl extends UserMapperService {
         userDto.roles( getRolesAsStringList(user.getRole()) );
 
         return userDto.build();
+    }
+
+    @Override
+    public User toUpdatedEntity(UserUpdateDto dto, User currentUser) {
+        if ( dto == null ) {
+            return currentUser;
+        }
+
+        currentUser.setName( updateField(dto.getUserName(), currentUser.getName()) );
+        currentUser.setPassword( updatePassword(dto, currentUser.getPassword()) );
+        currentUser.setEmail( updateField(dto.getEmail(), currentUser.getEmail()) );
+
+        return currentUser;
     }
 }

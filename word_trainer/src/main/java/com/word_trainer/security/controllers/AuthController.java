@@ -42,6 +42,6 @@ public class AuthController implements AuthAPI {
     @Override
     public void logout(HttpServletResponse response, String refreshToken) {
         service.logout(refreshToken);
-        cookieService.setRefreshTokenToCookie(response, null);
+        cookieService.removeRefreshTokenFromCookie(response);;
     }
 }

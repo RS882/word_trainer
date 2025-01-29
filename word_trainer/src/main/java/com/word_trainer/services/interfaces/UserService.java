@@ -3,6 +3,7 @@ package com.word_trainer.services.interfaces;
 
 import com.word_trainer.domain.dto.users.UserDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
+import com.word_trainer.domain.dto.users.UserUpdateDto;
 import com.word_trainer.domain.entity.User;
 
 public interface UserService {
@@ -12,5 +13,9 @@ public interface UserService {
 
     User saveUser(User user);
 
-    UserDto geCurrentUserInfo(User currentUser);
+    UserDto getCurrentUserInfo(User currentUser);
+
+    UserDto updateCurrentUserInfo(UserUpdateDto userUpdateDto, User currentUser);
+
+    boolean existsUserByEmail( String email);
 }

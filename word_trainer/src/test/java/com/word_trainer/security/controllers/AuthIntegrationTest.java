@@ -18,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,6 +31,7 @@ import java.util.stream.Stream;
 import static com.word_trainer.security.services.AuthServiceImpl.MAX_COUNT_OF_LOGINS;
 import static com.word_trainer.security.services.CookieService.COOKIE_REFRESH_TOKEN_NAME;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -170,7 +172,7 @@ class AuthIntegrationTest {
 
         @ParameterizedTest(name = "Test {index}: login_with_status_404_email_or_password_is_wrong [{arguments}]")
         @MethodSource("wrongLoginData")
-        public void login_with_status_401_email_or_password_is_wrong(LoginDto dto) throws Exception {
+        public void login_with_status_404_email_or_password_is_wrong(LoginDto dto) throws Exception {
             String dtoJson = mapper.writeValueAsString(dto);
             mockMvc.perform(post(LOGIN_URL)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -366,8 +368,10 @@ class AuthIntegrationTest {
                             .cookie(cookie)
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken()))
                     .andExpect(status().isNoContent())
-                    .andExpect(cookie().value(COOKIE_REFRESH_TOKEN_NAME, (String) null))
+                    .andExpect(cookie().value(COOKIE_REFRESH_TOKEN_NAME, ""))
                     .andReturn();
+
+            assertNull(SecurityContextHolder.getContext().getAuthentication());
         }
 
         @Test

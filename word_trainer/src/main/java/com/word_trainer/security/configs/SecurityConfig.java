@@ -42,6 +42,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST, "/v1/users/registration").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/users/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/v1/users/me").authenticated()
 
                         .requestMatchers(HttpMethod.POST, "/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/auth/refresh").permitAll()
