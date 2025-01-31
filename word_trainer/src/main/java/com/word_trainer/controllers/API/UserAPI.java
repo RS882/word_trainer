@@ -114,7 +114,12 @@ public interface UserAPI {
                             schema = @Schema(implementation = UserUpdateDto.class)))
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User information update successfully",
+            @ApiResponse(responseCode = "204"
+                    , description = "User information update successfully. No need to log in again",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UserDto.class))),
+            @ApiResponse(responseCode = "205"
+                    , description = "User information update successfully. Log in again",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserDto.class))),
             @ApiResponse(responseCode = "400", description = "Request is wrong",
@@ -157,7 +162,7 @@ public interface UserAPI {
                     )),
     })
     @PutMapping("/me")
-    ResponseEntity<UserDto> updateMeInfo(
+    ResponseEntity<Void> updateMeInfo(
             @org.springframework.web.bind.annotation.RequestBody
             @Valid
             UserUpdateDto userUpdateDto,

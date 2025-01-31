@@ -39,18 +39,17 @@ public class UserController implements UserAPI {
     }
 
     @Override
-    public ResponseEntity<UserDto> updateMeInfo(UserUpdateDto userUpdateDto,
-                                                User currentUser,
-                                                HttpServletResponse response,
-                                                String refreshToken,
-                                                String accessToken) {
+    public ResponseEntity<Void> updateMeInfo(UserUpdateDto userUpdateDto,
+                                             User currentUser,
+                                             HttpServletResponse response,
+                                             String refreshToken,
+                                             String accessToken) {
         UpdatedUserDtoBeforeSend updatedUserDto = userService.updateCurrentUserInfo(userUpdateDto, currentUser.getId());
         if (updatedUserDto.isReauthenticationRequired()) {
             authService.logout(refreshToken, accessToken);
             cookieService.removeRefreshTokenFromCookie(response);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.RESET_CONTENT).build();
         }
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(updatedUserDto.getDto());
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

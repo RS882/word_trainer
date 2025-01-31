@@ -303,9 +303,7 @@ class UserControllerTest {
 
         @ParameterizedTest(name = "Тест {index}: update user information with status 200 [{arguments}]")
         @MethodSource("updateUserInfos")
-        public void update_user_information_with_status_200(UserUpdateDto dto,
-                                                            String updatedUserName,
-                                                            String updatedEmail,
+        public void update_user_information_with_status_20x(UserUpdateDto dto,
                                                             boolean isEmailOrPasswordChanged) throws Exception {
             loginUser1();
 
@@ -317,7 +315,7 @@ class UserControllerTest {
                                 .cookie(cookie)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(dtoJson))
-                        .andExpect(status().isUnauthorized())
+                        .andExpect(status().isResetContent())
                         .andExpect(cookie().value(COOKIE_REFRESH_TOKEN_NAME, ""));
 
                 mockMvc.perform(get(USER_ME_PATH)
@@ -332,16 +330,12 @@ class UserControllerTest {
                                 .cookie(cookie)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(dtoJson))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.userId").value(Long.valueOf(currentUserId1)))
-                        .andExpect(jsonPath("$.roles", hasSize(1)))
-                        .andExpect(jsonPath("$.roles[0]", is("ROLE_USER")))
-                        .andExpect(jsonPath("$.userName", is(updatedUserName)))
-                        .andExpect(jsonPath("$.email", is(updatedEmail)));
+                        .andExpect(status().isNoContent());
 
                 mockMvc.perform(get(USER_ME_PATH)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
                         .andExpect(status().isOk());
+
                 assertFalse(tokenBlackListRepository.existsByToken(accessToken1));
             }
         }
@@ -353,67 +347,49 @@ class UserControllerTest {
                                     .password(TEST_USER_PASSWORD_2)
                                     .userName(TEST_USER_NAME_2)
                                     .build(),
-                            TEST_USER_NAME_2,
-                            TEST_USER_EMAIL_2,
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
                                     .password(TEST_USER_PASSWORD_2)
                                     .userName(TEST_USER_NAME_2)
                                     .build(),
-                            TEST_USER_NAME_2,
-                            TEST_USER_EMAIL_1,
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
                                     .email(TEST_USER_EMAIL_2)
                                     .userName(TEST_USER_NAME_2)
                                     .build(),
-                            TEST_USER_NAME_2,
-                            TEST_USER_EMAIL_2,
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
                                     .email(TEST_USER_EMAIL_2)
                                     .password(TEST_USER_PASSWORD_2)
                                     .build(),
-                            TEST_USER_NAME_1,
-                            TEST_USER_EMAIL_2,
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
                                     .email(TEST_USER_EMAIL_2)
                                     .userName(TEST_USER_NAME_2)
                                     .build(),
-                            TEST_USER_NAME_2,
-                            TEST_USER_EMAIL_2,
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
                                     .password(TEST_USER_PASSWORD_2)
                                     .build(),
-                            TEST_USER_NAME_1,
-                            TEST_USER_EMAIL_1,
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
                                     .email(TEST_USER_EMAIL_2)
                                     .build(),
-                            TEST_USER_NAME_1,
-                            TEST_USER_EMAIL_2,
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
                                     .userName(TEST_USER_NAME_2)
                                     .build(),
-                            TEST_USER_NAME_2,
-                            TEST_USER_EMAIL_1,
                             false),
                     Arguments.of(
                             UserUpdateDto.builder()
                                     .build(),
-                            TEST_USER_NAME_1,
-                            TEST_USER_EMAIL_1,
                             false));
         }
 
