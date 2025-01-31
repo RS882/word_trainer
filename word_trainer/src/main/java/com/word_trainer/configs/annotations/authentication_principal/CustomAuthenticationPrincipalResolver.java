@@ -1,4 +1,4 @@
-package com.word_trainer.security.configs.configs_components;
+package com.word_trainer.configs.annotations.authentication_principal;
 
 import com.word_trainer.domain.entity.User;
 import lombok.extern.slf4j.Slf4j;

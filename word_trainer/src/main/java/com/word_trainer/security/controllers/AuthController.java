@@ -35,13 +35,13 @@ public class AuthController implements AuthAPI {
     }
 
     @Override
-    public ResponseEntity<ValidationResponseDto> validation(String authorizationHeader) {
-        return ResponseEntity.ok(service.validation(authorizationHeader));
+    public ResponseEntity<ValidationResponseDto> validation(String accessToken) {
+        return ResponseEntity.ok(service.validation(accessToken));
     }
 
     @Override
-    public void logout(HttpServletResponse response, String refreshToken) {
-        service.logout(refreshToken);
-        cookieService.removeRefreshTokenFromCookie(response);;
+    public void logout(HttpServletResponse response, String refreshToken, String accessToken) {
+        service.logout(refreshToken, accessToken);
+        cookieService.removeRefreshTokenFromCookie(response);
     }
 }

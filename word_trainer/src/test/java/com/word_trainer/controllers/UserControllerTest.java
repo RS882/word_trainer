@@ -1,14 +1,15 @@
 package com.word_trainer.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.word_trainer.domain.dto.users.UserDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
 import com.word_trainer.domain.dto.users.UserUpdateDto;
 import com.word_trainer.repository.UserRepository;
 import com.word_trainer.security.domain.dto.LoginDto;
 import com.word_trainer.security.domain.dto.TokenResponseDto;
+import com.word_trainer.security.repositorys.TokenBlackListRepository;
 import com.word_trainer.security.services.CookieService;
 import com.word_trainer.services.mapping.UserMapperService;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,7 +20,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,8 +30,8 @@ import java.util.stream.Stream;
 
 import static com.word_trainer.security.services.CookieService.COOKIE_REFRESH_TOKEN_NAME;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -52,10 +52,16 @@ class UserControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private TokenBlackListRepository tokenBlackListRepository;
+
+    @Autowired
     private UserMapperService mapperService;
 
     @Autowired
     private CookieService cookieService;
+
+    @Autowired
+    private EntityManager entityManager;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -300,33 +306,43 @@ class UserControllerTest {
         public void update_user_information_with_status_200(UserUpdateDto dto,
                                                             String updatedUserName,
                                                             String updatedEmail,
-                                                            boolean isEmailOrNameChanged) throws Exception {
+                                                            boolean isEmailOrPasswordChanged) throws Exception {
             loginUser1();
 
             String dtoJson = mapper.writeValueAsString(dto);
 
-            MvcResult result = mockMvc.perform(put(USER_ME_PATH)
-                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1)
-                            .cookie(cookie)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(dtoJson))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.userId").value(Long.valueOf(currentUserId1)))
-                    .andExpect(jsonPath("$.roles", hasSize(1)))
-                    .andExpect(jsonPath("$.roles[0]", is("ROLE_USER")))
-                    .andExpect(cookie().value(COOKIE_REFRESH_TOKEN_NAME, ""))
-                    .andReturn();
-            String jsonResponse = result.getResponse().getContentAsString();
-            UserDto responseDto = mapper.readValue(jsonResponse, UserDto.class);
+            if (isEmailOrPasswordChanged) {
+                mockMvc.perform(put(USER_ME_PATH)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1)
+                                .cookie(cookie)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(dtoJson))
+                        .andExpect(status().isUnauthorized())
+                        .andExpect(cookie().value(COOKIE_REFRESH_TOKEN_NAME, ""));
 
-            assertEquals(responseDto.getEmail(), updatedEmail);
-            assertEquals(responseDto.getUserName(), updatedUserName);
-            assertNull(SecurityContextHolder.getContext().getAuthentication());
-            if (isEmailOrNameChanged) {
                 mockMvc.perform(get(USER_ME_PATH)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
-                        .andExpect(status().isUnauthorized())
-                        .andReturn();
+                        .andExpect(status().isUnauthorized());
+
+                assertTrue(tokenBlackListRepository.existsByToken(accessToken1));
+
+            } else {
+                mockMvc.perform(put(USER_ME_PATH)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1)
+                                .cookie(cookie)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(dtoJson))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.userId").value(Long.valueOf(currentUserId1)))
+                        .andExpect(jsonPath("$.roles", hasSize(1)))
+                        .andExpect(jsonPath("$.roles[0]", is("ROLE_USER")))
+                        .andExpect(jsonPath("$.userName", is(updatedUserName)))
+                        .andExpect(jsonPath("$.email", is(updatedEmail)));
+
+                mockMvc.perform(get(USER_ME_PATH)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                        .andExpect(status().isOk());
+                assertFalse(tokenBlackListRepository.existsByToken(accessToken1));
             }
         }
 
@@ -378,7 +394,7 @@ class UserControllerTest {
                                     .build(),
                             TEST_USER_NAME_1,
                             TEST_USER_EMAIL_1,
-                            false),
+                            true),
                     Arguments.of(
                             UserUpdateDto.builder()
                                     .email(TEST_USER_EMAIL_2)
@@ -392,7 +408,7 @@ class UserControllerTest {
                                     .build(),
                             TEST_USER_NAME_2,
                             TEST_USER_EMAIL_1,
-                            true),
+                            false),
                     Arguments.of(
                             UserUpdateDto.builder()
                                     .build(),

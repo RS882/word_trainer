@@ -1,6 +1,7 @@
 package com.word_trainer.security.controllers.API;
 
 
+import com.word_trainer.configs.annotations.bearer_token.BearerToken;
 import com.word_trainer.domain.dto.response.ResponseMessageDto;
 import com.word_trainer.security.domain.dto.LoginDto;
 import com.word_trainer.security.domain.dto.TokenResponseDto;
@@ -16,7 +17,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -68,6 +68,7 @@ public interface AuthAPI {
             @Parameter(description = "Login DTO")
             @RequestBody
             LoginDto loginDto,
+            @Parameter(hidden = true)
             HttpServletResponse response);
 
 
@@ -97,6 +98,7 @@ public interface AuthAPI {
     )
     @GetMapping("/refresh")
     ResponseEntity<TokenResponseDto> refresh(
+            @Parameter(hidden = true)
             HttpServletResponse response,
             @Parameter(
                     in = ParameterIn.COOKIE,
@@ -129,9 +131,9 @@ public interface AuthAPI {
     @GetMapping("/validation")
     ResponseEntity<ValidationResponseDto> validation(
             @Parameter(hidden = true)
-            @RequestHeader(HttpHeaders.AUTHORIZATION)
+            @BearerToken
             @NotNull
-            String authorizationHeader);
+            String accessToken);
 
     @Operation(
             summary = "Logout of user",
@@ -150,6 +152,7 @@ public interface AuthAPI {
     @GetMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void logout(
+            @Parameter(hidden = true)
             HttpServletResponse response,
             @Parameter(
                     in = ParameterIn.COOKIE,
@@ -160,5 +163,9 @@ public interface AuthAPI {
             )
             @CookieValue(name = COOKIE_REFRESH_TOKEN_NAME)
             @NotNull
-            String refreshToken);
+            String refreshToken,
+            @BearerToken
+            @Parameter(hidden = true)
+            @NotNull
+            String accessToken);
 }

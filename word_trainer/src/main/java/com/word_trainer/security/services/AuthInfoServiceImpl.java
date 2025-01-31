@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import static com.word_trainer.security.services.TokenService.USER_EMAIL_VARIABLE_NAME;
-import static com.word_trainer.security.services.TokenService.USER_NAME_VARIABLE_NAME;
 
 @Service
 @RequiredArgsConstructor
@@ -35,8 +34,8 @@ public class AuthInfoServiceImpl implements AuthInfoService {
 
     private boolean isClaimsCompatibleWithUserData(Claims claims, User user) {
         if (user == null) return false;
-        String userNameFromClams = (String) claims.get(USER_NAME_VARIABLE_NAME);
         String userEmailFromClams = (String) claims.get(USER_EMAIL_VARIABLE_NAME);
-        return userNameFromClams.equals(user.getName()) && userEmailFromClams.equals(user.getEmail());
+        return userEmailFromClams.equals(user.getEmail());
+
     }
 }

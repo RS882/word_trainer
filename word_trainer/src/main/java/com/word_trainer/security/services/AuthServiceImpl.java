@@ -69,9 +69,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ValidationResponseDto validation(String authorizationHeader) {
+    public ValidationResponseDto validation(String token) {
 
-        String token = authorizationHeader.substring(7);
         Claims claims = tokenService.getAccessTokenClaims(token);
         User user = userService.getUserByEmail(claims.getSubject());
 
@@ -83,8 +82,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout(String refreshToken) {
+    public void logout(String refreshToken, String accessToken) {
         tokenService.removeOldRefreshToken(refreshToken);
+        tokenService.addTokenToBlackList(accessToken);
         SecurityContextHolder.clearContext();
     }
 

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
 import com.word_trainer.repository.UserRepository;
 import com.word_trainer.security.domain.dto.LoginDto;
+import com.word_trainer.security.repositorys.TokenBlackListRepository;
 import com.word_trainer.security.services.CookieService;
 import com.word_trainer.security.services.TokenService;
 import com.word_trainer.services.mapping.UserMapperService;
@@ -18,7 +19,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,8 +30,7 @@ import java.util.stream.Stream;
 
 import static com.word_trainer.security.services.AuthServiceImpl.MAX_COUNT_OF_LOGINS;
 import static com.word_trainer.security.services.CookieService.COOKIE_REFRESH_TOKEN_NAME;
-
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -51,6 +50,9 @@ class AuthIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TokenBlackListRepository tokenBlackListRepository;
 
     @Autowired
     private UserMapperService mapperService;
@@ -187,6 +189,7 @@ class AuthIntegrationTest {
             UUID random = UUID.randomUUID();
             UserRegistrationDto dto = UserRegistrationDto
                     .builder()
+                    .userName("Test")
                     .email(random + "@example.com")
                     .password(USER1_PASSWORD)
                     .build();
@@ -358,20 +361,21 @@ class AuthIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET " +LOGOUT_URL)
+    @DisplayName("GET " + LOGOUT_URL)
     class Logout {
 
         @Test
         public void logout_with_status_200() throws Exception {
             Cookie cookie = getCookie();
+            String accessToken = getAccessToken();
             mockMvc.perform(get(LOGOUT_URL)
                             .cookie(cookie)
-                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken()))
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
                     .andExpect(status().isNoContent())
                     .andExpect(cookie().value(COOKIE_REFRESH_TOKEN_NAME, ""))
                     .andReturn();
 
-            assertNull(SecurityContextHolder.getContext().getAuthentication());
+            assertTrue(tokenBlackListRepository.existsByToken(accessToken));
         }
 
         @Test

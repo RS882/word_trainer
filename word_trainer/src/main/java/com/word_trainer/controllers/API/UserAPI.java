@@ -1,6 +1,7 @@
 package com.word_trainer.controllers.API;
 
 
+import com.word_trainer.configs.annotations.bearer_token.BearerToken;
 import com.word_trainer.domain.dto.response.ResponseMessageDto;
 import com.word_trainer.domain.dto.users.UserDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
@@ -173,7 +174,9 @@ public interface UserAPI {
             )
             @CookieValue(name = COOKIE_REFRESH_TOKEN_NAME)
             @NotNull
-            String refreshToken
+            String refreshToken,
+            @Parameter(hidden = true)
+            @BearerToken String accessToken
     );
 
 }

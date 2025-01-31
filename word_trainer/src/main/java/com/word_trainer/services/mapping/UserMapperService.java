@@ -24,7 +24,8 @@ public abstract class UserMapperService {
     @Autowired
     protected PasswordEncoder encoder;
 
-    @Mapping(target = "name", source = "userName")
+    @Mapping(target = "name", expression = "java(dto.getUserName().trim())")
+    @Mapping(target = "email", expression = "java(dto.getEmail().trim())")
     @Mapping(target = "role", expression = "java(getDefaultRole())")
     @Mapping(target = "password", expression = "java(encodePassword(dto))")
     @Mapping(target = "loginBlockedUntil", expression = "java(getDefaultLoginBlockedUntil())")
@@ -41,9 +42,9 @@ public abstract class UserMapperService {
     @Mapping(target = "role", ignore = true)
     @Mapping(target = "loginBlockedUntil", ignore = true)
     @Mapping(target = "userResult", ignore = true)
-    @Mapping(target = "name", expression = "java(updateField(dto.getUserName(), currentUser.getName()))")
+    @Mapping(target = "name", expression = "java(updateField(dto.getUserName(), currentUser.getName()).trim())")
     @Mapping(target = "password", expression = "java(updatePassword(dto, currentUser.getPassword()))")
-    @Mapping(target = "email", expression = "java(updateField(dto.getEmail(), currentUser.getEmail()))")
+    @Mapping(target = "email", expression = "java(updateField(dto.getEmail(), currentUser.getEmail()).trim())")
     public abstract User toUpdatedEntity(UserUpdateDto dto, @MappingTarget User currentUser);
 
     protected Role getDefaultRole() {

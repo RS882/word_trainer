@@ -5,6 +5,8 @@ import com.word_trainer.domain.entity.User;
 import com.word_trainer.exception_handler.not_found.exceptions.TokenNotFoundException;
 import com.word_trainer.security.domain.dto.TokensDto;
 import com.word_trainer.security.domain.entity.RefreshToken;
+import com.word_trainer.security.domain.entity.TokenBlackList;
+import com.word_trainer.security.repositorys.TokenBlackListRepository;
 import com.word_trainer.security.repositorys.TokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -42,14 +44,17 @@ public class TokenService {
 
     private final TokenRepository repository;
 
+    private final TokenBlackListRepository blackListRepository;
+
     private Date refreshTokenExpireAt;
 
     public TokenService(@Value("${key.access}") String accessKey,
                         @Value("${key.refresh}") String refreshKey,
-                        TokenRepository repository) {
+                        TokenRepository repository, TokenBlackListRepository blackListRepository) {
         this.ACCESS_KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(accessKey));
         this.REFRESH_KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshKey));
         this.repository = repository;
+        this.blackListRepository = blackListRepository;
     }
 
     public TokensDto getTokens(User user) {
@@ -93,6 +98,13 @@ public class TokenService {
     @Transactional
     public void removeOldRefreshToken(String oldRefreshToken) {
         repository.deleteAllByToken(oldRefreshToken);
+    }
+
+    public void addTokenToBlackList(String token) {
+        blackListRepository.save(
+                TokenBlackList.builder()
+                        .token(token)
+                        .build());
     }
 
     private String generateAccessToken(User user) {
@@ -141,6 +153,7 @@ public class TokenService {
     }
 
     private boolean isTokenValid(String token, SecretKey key) {
+        if (blackListRepository.existsByToken(token)) return false;
         try {
             Jwts.parser()
                     .verifyWith(key)

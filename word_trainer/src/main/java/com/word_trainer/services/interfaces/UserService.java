@@ -1,6 +1,7 @@
 package com.word_trainer.services.interfaces;
 
 
+import com.word_trainer.domain.dto.users.UpdatedUserDtoBeforeSend;
 import com.word_trainer.domain.dto.users.UserDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
 import com.word_trainer.domain.dto.users.UserUpdateDto;
@@ -13,9 +14,9 @@ public interface UserService {
 
     User saveUser(User user);
 
-    UserDto getCurrentUserInfo(User currentUser);
+    UserDto getCurrentUserInfo(Long currentUserId);
 
-    UserDto updateCurrentUserInfo(UserUpdateDto userUpdateDto, User currentUser);
+    UpdatedUserDtoBeforeSend updateCurrentUserInfo(UserUpdateDto userUpdateDto, Long currentUserId);
 
-    boolean existsUserByEmail( String email);
+    boolean existsUserByEmail(String email);
 }

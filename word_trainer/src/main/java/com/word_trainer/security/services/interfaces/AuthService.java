@@ -13,7 +13,7 @@ public interface AuthService {
 
     ValidationResponseDto validation(String authorizationHeader);
 
-    void logout(String refreshToken);
+    void logout(String refreshToken, String accessToken);
 
     TokenResponseDto getTokenResponseDto(TokensDto tokensDto);
 

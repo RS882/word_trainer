@@ -44,7 +44,7 @@ public class User {
     @Column(name = "login_blocked_until")
     private LocalDateTime loginBlockedUntil;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference
     private Set<UserLexemeResult> userResult;
 }

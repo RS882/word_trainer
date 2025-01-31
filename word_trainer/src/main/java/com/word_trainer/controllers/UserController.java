@@ -2,6 +2,7 @@ package com.word_trainer.controllers;
 
 
 import com.word_trainer.controllers.API.UserAPI;
+import com.word_trainer.domain.dto.users.UpdatedUserDtoBeforeSend;
 import com.word_trainer.domain.dto.users.UserDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
 import com.word_trainer.domain.dto.users.UserUpdateDto;
@@ -34,19 +35,22 @@ public class UserController implements UserAPI {
     @Override
     public ResponseEntity<UserDto> getMeInfo(User currentUser) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(userService.getCurrentUserInfo(currentUser));
+                .body(userService.getCurrentUserInfo(currentUser.getId()));
     }
 
     @Override
     public ResponseEntity<UserDto> updateMeInfo(UserUpdateDto userUpdateDto,
                                                 User currentUser,
                                                 HttpServletResponse response,
-                                                String refreshToken) {
-        UserDto updatedUserDto = userService.updateCurrentUserInfo(userUpdateDto, currentUser);
-        authService.logout(refreshToken);
-        cookieService.removeRefreshTokenFromCookie(response);
+                                                String refreshToken,
+                                                String accessToken) {
+        UpdatedUserDtoBeforeSend updatedUserDto = userService.updateCurrentUserInfo(userUpdateDto, currentUser.getId());
+        if (updatedUserDto.isReauthenticationRequired()) {
+            authService.logout(refreshToken, accessToken);
+            cookieService.removeRefreshTokenFromCookie(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         return ResponseEntity.status(HttpStatus.OK)
-                .body(updatedUserDto);
+                .body(updatedUserDto.getDto());
     }
-
 }
