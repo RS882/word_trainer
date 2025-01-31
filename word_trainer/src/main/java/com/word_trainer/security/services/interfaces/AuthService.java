@@ -17,4 +17,5 @@ public interface AuthService {
 
     TokenResponseDto getTokenResponseDto(TokensDto tokensDto);
 
+    void checkPassword(String receivedPassword, String savedPassword);
 }

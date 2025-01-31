@@ -18,14 +18,18 @@ public class UserUpdateDto {
     )
     private String email;
 
-    @Schema(description = "User password", example = "136Jkn!kPu5%")
+    @Schema(description = "User current password", example = "136Jkn!kPu5%")
+    @NotNull
+    private String currentPassword;
+
+    @Schema(description = "User new password", example = "136Jkn!kPu5%")
     @Pattern(
             regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@#$%^&+=!])(?=\\S+$).{8,20}$",
             message = "Password should include at least one letter (A-Z or a-z)," +
                     " one digit (0-9), one special character (@, #, $, %, ^, &, +, =, !)," +
                     " have no spaces,no less than 8 characters and no more than 20"
     )
-    private String password;
+    private String newPassword;
 
     @Schema(description = "User name", example = "John")
     @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")

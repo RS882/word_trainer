@@ -344,51 +344,60 @@ class UserControllerTest {
             return Stream.of(Arguments.of(
                             UserUpdateDto.builder()
                                     .email(TEST_USER_EMAIL_2)
-                                    .password(TEST_USER_PASSWORD_2)
+                                    .currentPassword(TEST_USER_PASSWORD_1)
+                                    .newPassword(TEST_USER_PASSWORD_2)
                                     .userName(TEST_USER_NAME_2)
                                     .build(),
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
-                                    .password(TEST_USER_PASSWORD_2)
+                                    .currentPassword(TEST_USER_PASSWORD_1)
+                                    .newPassword(TEST_USER_PASSWORD_2)
                                     .userName(TEST_USER_NAME_2)
                                     .build(),
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
+                                    .currentPassword(TEST_USER_PASSWORD_1)
                                     .email(TEST_USER_EMAIL_2)
                                     .userName(TEST_USER_NAME_2)
                                     .build(),
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
+                                    .currentPassword(TEST_USER_PASSWORD_1)
                                     .email(TEST_USER_EMAIL_2)
-                                    .password(TEST_USER_PASSWORD_2)
+                                    .newPassword(TEST_USER_PASSWORD_2)
                                     .build(),
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
+                                    .currentPassword(TEST_USER_PASSWORD_1)
                                     .email(TEST_USER_EMAIL_2)
                                     .userName(TEST_USER_NAME_2)
                                     .build(),
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
-                                    .password(TEST_USER_PASSWORD_2)
+                                    .currentPassword(TEST_USER_PASSWORD_1)
+                                    .newPassword(TEST_USER_PASSWORD_2)
                                     .build(),
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
+                                    .currentPassword(TEST_USER_PASSWORD_1)
                                     .email(TEST_USER_EMAIL_2)
                                     .build(),
                             true),
                     Arguments.of(
                             UserUpdateDto.builder()
+                                    .currentPassword(TEST_USER_PASSWORD_1)
                                     .userName(TEST_USER_NAME_2)
                                     .build(),
                             false),
                     Arguments.of(
                             UserUpdateDto.builder()
+                                    .currentPassword(TEST_USER_PASSWORD_1)
                                     .build(),
                             false));
         }
@@ -400,7 +409,8 @@ class UserControllerTest {
 
             String dtoJson = mapper.writeValueAsString(UserUpdateDto.builder()
                     .email(TEST_USER_EMAIL_2)
-                    .password(TEST_USER_PASSWORD_2)
+                    .currentPassword(TEST_USER_PASSWORD_1)
+                    .newPassword(TEST_USER_PASSWORD_2)
                     .userName(TEST_USER_NAME_2)
                     .build());
 
@@ -432,49 +442,69 @@ class UserControllerTest {
         private static Stream<Arguments> incorrectUpdateData() {
             return Stream.of(Arguments.of(
                             UserUpdateDto.builder()
+                                    .currentPassword(TEST_USER_PASSWORD_1)
                                     .email("testexample?com")
                                     .build()),
                     Arguments.of(
                             UserUpdateDto.builder()
+                                    .currentPassword(TEST_USER_PASSWORD_1)
                                     .email("testexample23om")
                                     .build()),
                     Arguments.of(
                             UserUpdateDto.builder()
+                                    .currentPassword(TEST_USER_PASSWORD_1)
                                     .userName("uI")
                                     .build()),
                     Arguments.of(
                             UserUpdateDto.builder()
+                                    .currentPassword(TEST_USER_PASSWORD_1)
                                     .userName("uIasdsdasfsdf_Asid2032o4p12o3joefhsodfhosdhf898ihoih2434efg34grfgdfgsdfasdposapfjsddfhg")
                                     .build()),
                     Arguments.of(
                             UserUpdateDto.builder()
-                                    .password("1E")
+                                    .currentPassword(TEST_USER_PASSWORD_1)
+                                    .newPassword("1E")
                                     .build()),
                     Arguments.of(
                             UserUpdateDto.builder()
-                                    .password("asdasdlDFsd90q!u023402lks@djalsdajsd#lahsdkahs$$%dllkasd")
+                                    .currentPassword(TEST_USER_PASSWORD_1)
+                                    .newPassword("asdasdlDFsd90q!u023402lks@djalsdajsd#lahsdkahs$$%dllkasd")
                                     .build()),
                     Arguments.of(
                             UserUpdateDto.builder()
-                                    .password("asdasdlweqwe")
+                                    .currentPassword(TEST_USER_PASSWORD_1)
+                                    .newPassword("asdasdlweqwe")
                                     .build()),
                     Arguments.of(
                             UserUpdateDto.builder()
-                                    .password("asda@sdlweqwe")
+                                    .currentPassword(TEST_USER_PASSWORD_1)
+                                    .newPassword("asda@sdlweqwe")
                                     .build()),
                     Arguments.of(
                             UserUpdateDto.builder()
-                                    .password("asdasdlwe8qwe")
+                                    .currentPassword(TEST_USER_PASSWORD_1)
+                                    .newPassword("asdasdlwe8qwe")
                                     .build()),
                     Arguments.of(
                             UserUpdateDto.builder()
-                                    .password("Qsdasdlwe8qwe")
+                                    .currentPassword(TEST_USER_PASSWORD_1)
+                                    .newPassword("Qsdasdlwe8qwe")
                                     .build()),
                     Arguments.of(
                             UserUpdateDto.builder()
+                                    .currentPassword(TEST_USER_PASSWORD_1)
                                     .email("testexample?com")
                                     .userName("2y")
-                                    .password("Qsdasdlwe8qwe")
+                                    .newPassword("Qsdasdlwe8qwe")
+                                    .build())
+                    ,
+                    Arguments.of(
+                            UserUpdateDto.builder()
+                                    .build()),
+                    Arguments.of(
+                            UserUpdateDto.builder()
+                                    .email(TEST_USER_EMAIL_2)
+                                    .newPassword(TEST_USER_PASSWORD_2)
                                     .build())
             );
         }
@@ -484,7 +514,8 @@ class UserControllerTest {
 
             String dtoJson = mapper.writeValueAsString(UserUpdateDto.builder()
                     .email(TEST_USER_EMAIL_2)
-                    .password(TEST_USER_PASSWORD_2)
+                    .currentPassword(TEST_USER_PASSWORD_1)
+                    .newPassword(TEST_USER_PASSWORD_2)
                     .userName(TEST_USER_NAME_2)
                     .build());
 
@@ -495,6 +526,25 @@ class UserControllerTest {
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.message", isA(String.class)));
         }
-    }
 
+        @Test
+        public void update_user_information_with_status_401_when_user_is_incorrectly() throws Exception {
+            loginUser1();
+
+            String dtoJson = mapper.writeValueAsString(UserUpdateDto.builder()
+                    .email(TEST_USER_EMAIL_2)
+                    .currentPassword(TEST_USER_PASSWORD_2)
+                    .newPassword(TEST_USER_PASSWORD_2)
+                    .userName(TEST_USER_NAME_2)
+                    .build());
+
+            mockMvc.perform(put(USER_ME_PATH)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1)
+                            .cookie(cookie)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(dtoJson))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.message", isA(String.class)));
+        }
+    }
 }

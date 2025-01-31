@@ -56,7 +56,7 @@ public abstract class UserMapperService {
     }
 
     protected String encodePassword(UserUpdateDto dto) {
-        return encoder.encode(dto.getPassword());
+        return encoder.encode(dto.getNewPassword());
     }
 
     protected LocalDateTime getDefaultLoginBlockedUntil() {
@@ -72,6 +72,6 @@ public abstract class UserMapperService {
     }
 
     protected String updatePassword(UserUpdateDto dto, String oldPassword) {
-        return dto.getPassword() != null ? encodePassword(dto) : oldPassword;
+        return dto.getNewPassword() != null ? encodePassword(dto) : oldPassword;
     }
 }

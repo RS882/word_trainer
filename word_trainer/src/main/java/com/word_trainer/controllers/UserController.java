@@ -44,12 +44,16 @@ public class UserController implements UserAPI {
                                              HttpServletResponse response,
                                              String refreshToken,
                                              String accessToken) {
+        authService.checkPassword(userUpdateDto.getCurrentPassword(),currentUser.getPassword());
+
         UpdatedUserDtoBeforeSend updatedUserDto = userService.updateCurrentUserInfo(userUpdateDto, currentUser.getId());
+
         if (updatedUserDto.isReauthenticationRequired()) {
             authService.logout(refreshToken, accessToken);
             cookieService.removeRefreshTokenFromCookie(response);
             return ResponseEntity.status(HttpStatus.RESET_CONTENT).build();
         }
+
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

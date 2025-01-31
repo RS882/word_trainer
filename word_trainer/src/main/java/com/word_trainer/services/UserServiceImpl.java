@@ -66,18 +66,15 @@ public class UserServiceImpl implements UserService {
         User currentUser = getUserById(currentUserId);
 
         if (allFieldsUserUpdateDtoNull(dto)) {
-            return UpdatedUserDtoBeforeSend.builder()
-                    .dto(mapper.toDto(currentUser))
-                    .build();
+            return UpdatedUserDtoBeforeSend.builder().build();
         }
         String newEmail = dto.getEmail() != null ? dto.getEmail().trim() : null;
         boolean emailChanged = newEmail != null && !currentUser.getEmail().equalsIgnoreCase(newEmail);
-        boolean passwordChanged = dto.getPassword() != null;
+        boolean passwordChanged = dto.getNewPassword() != null;
 
         mapper.toUpdatedEntity(dto, currentUser);
 
         return UpdatedUserDtoBeforeSend.builder()
-                .dto(mapper.toDto(currentUser))
                 .isReauthenticationRequired(emailChanged || passwordChanged)
                 .build();
     }
@@ -93,7 +90,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private boolean allFieldsUserUpdateDtoNull(UserUpdateDto dto) {
-        return dto.getPassword() == null &&
+        return dto.getNewPassword() == null &&
                 dto.getUserName() == null &&
                 dto.getEmail() == null;
     }

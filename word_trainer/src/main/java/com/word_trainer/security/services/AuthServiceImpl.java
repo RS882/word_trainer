@@ -43,9 +43,7 @@ public class AuthServiceImpl implements AuthService {
         User currentUser = userService.getUserByEmail(loginDto.getEmail());
 
         checkLoginBlockedTime(currentUser);
-        if (!encoder.matches(loginDto.getPassword(), currentUser.getPassword())) {
-            throw new BadCredentialsException("Wrong password");
-        }
+        checkPassword(loginDto.getPassword(),currentUser.getPassword());
         setLoginBlockedTime(currentUser);
         return tokenService.getTokens(currentUser);
     }
@@ -93,6 +91,13 @@ public class AuthServiceImpl implements AuthService {
         return tokenDtoMapperService.toResponseDto(tokensDto);
     }
 
+    @Override
+    public void checkPassword(String receivedPassword, String savedPassword) {
+        if (!encoder.matches(receivedPassword, savedPassword)) {
+            throw new BadCredentialsException("Wrong password");
+        }
+    }
+
     private void setLoginBlockedTime(User user) {
         Long userId = user.getId();
         List<String> refreshTokens = tokenService.getRefreshTokensByUserId(userId);
@@ -106,7 +111,6 @@ public class AuthServiceImpl implements AuthService {
 
             log.warn("User {} has limit of logins :{}.", userId, MAX_COUNT_OF_LOGINS);
             log.warn("User {} logins blocked until:{}.", userId, user.getLoginBlockedUntil());
-
         }
     }
 
