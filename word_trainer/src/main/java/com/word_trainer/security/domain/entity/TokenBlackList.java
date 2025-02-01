@@ -31,6 +31,8 @@ public class TokenBlackList {
 
     @PrePersist
     protected void onCreate() {
-        deleteAfterDatetime = LocalDateTime.now().plusMinutes(expiresAccessInMinutes);
+        if (deleteAfterDatetime == null) {
+            deleteAfterDatetime = LocalDateTime.now().plusMinutes(expiresAccessInMinutes);
+        }
     }
 }
