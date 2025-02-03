@@ -5,14 +5,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.word_trainer.constants.LexemeType;
 import com.word_trainer.constants.language.Language;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
 
 import java.util.Map;
 import java.util.UUID;
 
 @Data
-@Builder
+@SuperBuilder
 @Schema(description = "Response DTO with translations")
 public class ResponseTranslationDto {
 

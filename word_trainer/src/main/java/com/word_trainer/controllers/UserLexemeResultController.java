@@ -2,6 +2,7 @@ package com.word_trainer.controllers;
 
 import com.word_trainer.controllers.API.UserLexemeResultAPI;
 import com.word_trainer.domain.dto.response.ResponseMessageDto;
+import com.word_trainer.domain.dto.response.ResponseUserResultsDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserLexemeResultDto;
 import com.word_trainer.domain.entity.User;
 import com.word_trainer.services.interfaces.UserLexemeResultService;
@@ -10,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,6 +29,12 @@ public class UserLexemeResultController implements UserLexemeResultAPI {
         ResponseMessageDto messageDto = new ResponseMessageDto(messageText);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(messageDto);
+    }
+
+    @Override
+    public ResponseEntity<List<ResponseUserResultsDto>> getUserStudyStatistics(User currentUser) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(service.getStudyStatisticsByUserId(currentUser.getId()));
     }
 }
 

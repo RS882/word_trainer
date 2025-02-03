@@ -1,9 +1,11 @@
 package com.word_trainer.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.word_trainer.constants.LexemeType;
 import com.word_trainer.constants.language.Language;
 import com.word_trainer.domain.dto.lexeme.LexemeDto;
+import com.word_trainer.domain.dto.response.ResponseUserResultsDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserLexemeResultDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserResultsDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
@@ -38,10 +40,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.isA;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -174,11 +174,30 @@ class UserLexemeResultControllerTest {
         return result;
     }
 
-    private UserLexemeResult createNewUserLexemeResults(User user, Lexeme lexeme, int attempts, int successfulAttempts) {
+    private UserLexemeResult createNewUserLexemeResults(
+            User user,
+            Lexeme lexeme,
+            int attempts,
+            int successfulAttempts) {
+        return createNewUserLexemeResults(
+                user,
+                lexeme,
+                attempts,
+                successfulAttempts,
+                Language.EN,
+                Language.DE);
+    }
 
+    private UserLexemeResult createNewUserLexemeResults(
+            User user,
+            Lexeme lexeme,
+            int attempts,
+            int successfulAttempts,
+            Language sourceLanguage,
+            Language targetLanguage) {
         UserLexemeResult result = UserLexemeResult.builder()
-                .sourceLanguage(Language.EN)
-                .targetLanguage(Language.DE)
+                .sourceLanguage(sourceLanguage)
+                .targetLanguage(targetLanguage)
                 .attempts(attempts)
                 .successfulAttempts(successfulAttempts)
                 .user(user)
@@ -576,6 +595,168 @@ class UserLexemeResultControllerTest {
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.message").isNotEmpty())
                     .andExpect(jsonPath("$.message", isA(String.class)));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET " + USER_LEXEMES_RESULT_URL)
+    public class GetUserStudyStatisticsTests {
+
+        static class Counts {
+            private int result;
+            private int attempts;
+            private int successfulAttempts;
+            private final Language sourceLanguage;
+            private final Language targetLanguage;
+
+            public Counts(Language sourceLanguage, Language targetLanguage) {
+                this.sourceLanguage = sourceLanguage;
+                this.targetLanguage = targetLanguage;
+                this.result = 0;
+                this.attempts = 0;
+                this.successfulAttempts = 0;
+            }
+
+            public void incrementStats(int attempts, int successfulAttempts) {
+                this.result += 1;
+                this.attempts += attempts;
+                this.successfulAttempts += successfulAttempts;
+            }
+
+            public ResponseUserResultsDto responseUserResultsDtoFactory() {
+                return ResponseUserResultsDto.builder()
+                        .sourceLanguage(this.sourceLanguage)
+                        .targetLanguage(this.targetLanguage)
+                        .countOfResult(this.result)
+                        .countOfAttempts(this.attempts)
+                        .countOfSuccessfulAttempts(this.successfulAttempts)
+                        .build();
+            }
+        }
+
+        @Test
+        public void get_user_study_statistics_status_200() throws Exception {
+            loginUser1();
+
+            int attemptsEnDe = 6;
+            int successfulAttemptsEnDe = 3;
+            int attemptsEnUkr = 16;
+            int successfulAttemptsEnUkr = 10;
+            int attemptsDeUkr = 33;
+            int successfulAttemptsDeUkr = 27;
+            User user = userRepository.findById(currentUserId1).get();
+
+            List<ResponseUserResultsDto> expectedUserResults = new ArrayList<>();
+
+            List<Lexeme> createdLexemes = createNewLexemes(10);
+            Counts countsEnDE = new Counts(Language.EN, Language.DE);
+            Counts countsEnUkr = new Counts(Language.EN, Language.UKR);
+            Counts countsDeUkr = new Counts(Language.DE, Language.UKR);
+
+            for (int i = 0; i < 10; i++) {
+                createNewUserLexemeResults(user,
+                        createdLexemes.get(i),
+                        attemptsEnDe + i,
+                        successfulAttemptsEnDe + i);
+                countsEnDE.incrementStats(attemptsEnDe + i, successfulAttemptsEnDe + i);
+                if (i < 6) {
+                    createNewUserLexemeResults(user,
+                            createdLexemes.get(i),
+                            attemptsEnUkr + i,
+                            successfulAttemptsEnUkr + i,
+                            Language.EN, Language.UKR);
+                    countsEnUkr.incrementStats(attemptsEnUkr + i, successfulAttemptsEnUkr + i);
+                }
+                if (i < 9) {
+                    createNewUserLexemeResults(user,
+                            createdLexemes.get(i),
+                            attemptsDeUkr + i,
+                            successfulAttemptsDeUkr + i,
+                            Language.DE, Language.UKR);
+                    countsDeUkr.incrementStats(attemptsDeUkr + i, successfulAttemptsDeUkr + i);
+                }
+            }
+
+            ResponseUserResultsDto resultEnDe = countsEnDE.responseUserResultsDtoFactory();
+            ResponseUserResultsDto resultEnUkr = countsEnUkr.responseUserResultsDtoFactory();
+            ResponseUserResultsDto resultDeUkr = countsDeUkr.responseUserResultsDtoFactory();
+
+            expectedUserResults.add(resultEnDe);
+            expectedUserResults.add(resultEnUkr);
+            expectedUserResults.add(resultDeUkr);
+
+            loginUser2();
+
+            int attempts2 = 12;
+            int successfulAttempts2 = 5;
+            User user2 = userRepository.findById(currentUserId2).get();
+            for (int i = 0; i < 5; i++) {
+                createNewUserLexemeResults(user2,
+                        createdLexemes.get(i),
+                        attempts2 + i,
+                        successfulAttempts2 + i);
+            }
+
+            MvcResult result = mockMvc.perform(get(USER_LEXEMES_RESULT_URL)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andReturn();
+
+            String jsonResponse = result.getResponse().getContentAsString();
+
+            List<ResponseUserResultsDto> responseList = mapper.readValue(
+                    jsonResponse,
+                    new TypeReference<List<ResponseUserResultsDto>>() {
+                    }
+            );
+            assertEquals(responseList.size(), 3);
+            assertEquals(expectedUserResults, responseList);
+        }
+
+        @Test
+        public void get_user_study_statistics_status_200_when_result_is_empty() throws Exception {
+            loginUser1();
+
+            loginUser2();
+
+            int attempts2 = 12;
+            int successfulAttempts2 = 5;
+            User user2 = userRepository.findById(currentUserId2).get();
+            List<Lexeme> createdLexemes = createNewLexemes(10);
+            for (int i = 0; i < 5; i++) {
+                createNewUserLexemeResults(user2,
+                        createdLexemes.get(i),
+                        attempts2 + i,
+                        successfulAttempts2 + i);
+            }
+
+            MvcResult result = mockMvc.perform(get(USER_LEXEMES_RESULT_URL)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andReturn();
+
+            String jsonResponse = result.getResponse().getContentAsString();
+
+            List<ResponseUserResultsDto> responseList = mapper.readValue(
+                    jsonResponse,
+                    new TypeReference<List<ResponseUserResultsDto>>() {
+                    }
+            );
+            assertEquals(responseList.size(), 0);
+            assertTrue(responseList.isEmpty());
+        }
+
+        @Test
+        public void get_user_study_statistics_status_401_when_user_unauthorized() throws Exception {
+            mockMvc.perform(get(USER_LEXEMES_RESULT_URL)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + "test token"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.message").isNotEmpty())
+                    .andExpect(jsonPath("$.message", isA(String.class)));
+
         }
     }
 }
