@@ -43,7 +43,7 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
             UserLexemeResult result = getUserLexemeResultByParams(userLanguageInfoDto, r.getLexemeId());
 
             if (result != null) {
-                updateAttemptsInUserLexemeResult(result, r);
+                userLexemeResultMapperService.toUpdatedUserLexemeResult(result, r);
             } else {
                 UserLexemeResult newResult = buildNewUserLexemeResult(r, userLanguageInfoDto);
                 newResultsOfUser.add(newResult);
@@ -86,26 +86,10 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
                 .orElse(null);
     }
 
-
     private UserLexemeResult buildNewUserLexemeResult(UserResultsDto dto, UserLanguageInfoDto infoDto) {
         Lexeme lexeme = lexemeService.getLexemesById(dto.getLexemeId());
-        return UserLexemeResult.builder()
-                .attempts(dto.getAttempts())
-                .successfulAttempts(dto.getSuccessfulAttempts())
-                .sourceLanguage(infoDto.getSourceLanguage())
-                .targetLanguage(infoDto.getTargetLanguage())
-                .user(infoDto.getUser())
-                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
-                .lexeme(lexeme)
-                .build();
-    }
-
-    private void updateAttemptsInUserLexemeResult(UserLexemeResult result,
-                                                  UserResultsDto dto) {
-        result.setAttempts(result.getAttempts() + dto.getAttempts());
-        result.setSuccessfulAttempts(result.getSuccessfulAttempts() + dto.getSuccessfulAttempts());
-        if (dto.getIsActive() != null) {
-            result.setIsActive(dto.getIsActive());
-        }
+        UserLexemeResult result = userLexemeResultMapperService.toNewUserLexemeResult(dto, infoDto);
+        result.setLexeme(lexeme);
+        return result;
     }
 }
