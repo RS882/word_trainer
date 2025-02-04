@@ -1,7 +1,10 @@
 package com.word_trainer.repository;
 
+import com.word_trainer.constants.language.Language;
 import com.word_trainer.domain.dto.user_lexeme_result.UserLanguageInfoDto;
 import com.word_trainer.domain.entity.UserLexemeResult;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,4 +25,14 @@ public interface UserLexemeResultRepository extends JpaRepository<UserLexemeResu
 
     @Query("SELECT ulr FROM UserLexemeResult ulr WHERE ulr.user.id = :userId")
     List<UserLexemeResult> findAllByUserId(@Param("userId") Long userId);
+
+
+    @Query("SELECT ulr FROM UserLexemeResult ulr WHERE ulr.user.id = :userId " +
+            "AND ulr.sourceLanguage =:sourceLanguage " +
+            "AND ulr.targetLanguage =:targetLanguage")
+    Page<UserLexemeResult> findByUserIdAndLanguages(
+            @Param("userId") Long userId,
+            @Param("sourceLanguage") Language sourceLanguage,
+            @Param("targetLanguage") Language targetLanguage,
+            Pageable pageable);
 }

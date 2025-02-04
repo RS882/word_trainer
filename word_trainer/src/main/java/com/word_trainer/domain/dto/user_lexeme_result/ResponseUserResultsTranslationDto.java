@@ -8,15 +8,17 @@ import com.word_trainer.domain.dto.response.ResponseTranslationDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Map;
 import java.util.UUID;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
 @Schema(description = "Dto with a user results statistic data")
-public class UserResultsTranslationDto extends ResponseTranslationDto {
+public class ResponseUserResultsTranslationDto extends ResponseTranslationDto {
 
     @Schema(description = "Is lexeme active for user", example = "true")
     private Boolean isActive;
@@ -30,7 +32,7 @@ public class UserResultsTranslationDto extends ResponseTranslationDto {
     private int successfulAttempts;
 
     @JsonCreator
-    public UserResultsTranslationDto(
+    public ResponseUserResultsTranslationDto(
             @JsonProperty("lexemeId") UUID lexemeId,
             @JsonProperty("type") LexemeType type,
             @JsonProperty("isActive") Boolean isActive,
@@ -42,5 +44,20 @@ public class UserResultsTranslationDto extends ResponseTranslationDto {
         this.isActive = isActive;
         this.attempts = attempts;
         this.successfulAttempts = successfulAttempts;
+    }
+
+    public static ResponseUserResultsTranslationDto from(
+            ResponseTranslationDto baseDto,
+            Boolean isActive,
+            int attempts,
+            int successfulAttempts) {
+        return  ResponseUserResultsTranslationDto.builder()
+                .lexemeId(baseDto.getLexemeId())
+                .type(baseDto.getType())
+                .translations(baseDto.getTranslations())
+                .isActive(isActive)
+                .attempts(attempts)
+                .successfulAttempts(successfulAttempts)
+                .build();
     }
 }

@@ -1,6 +1,10 @@
 package com.word_trainer.services;
 
+import com.word_trainer.constants.language.Language;
+import com.word_trainer.domain.dto.lexeme.LexemeTranslationDto;
+import com.word_trainer.domain.dto.response.ResponseTranslationDto;
 import com.word_trainer.domain.dto.response.ResponseUserResultsDto;
+import com.word_trainer.domain.dto.user_lexeme_result.ResponseUserResultsTranslationDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserLanguageInfoDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserLexemeResultDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserResultsDto;
@@ -10,8 +14,12 @@ import com.word_trainer.domain.entity.UserLexemeResult;
 import com.word_trainer.repository.UserLexemeResultRepository;
 import com.word_trainer.services.interfaces.LexemeService;
 import com.word_trainer.services.interfaces.UserLexemeResultService;
+import com.word_trainer.services.mapping.LexemeMapperService;
 import com.word_trainer.services.mapping.UserLexemeResultMapperService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +34,8 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
     private final LexemeService lexemeService;
 
     private final UserLexemeResultMapperService userLexemeResultMapperService;
+
+    private final LexemeMapperService lexemeMapperService;
 
     @Override
     @Transactional
@@ -79,6 +89,39 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
             }
         }
         return response;
+    }
+
+    @Override
+    public Page<ResponseUserResultsTranslationDto> getUserTranslationResultsWithPagination(
+            Long userId,
+            Language sourceLanguage,
+            Language targetLanguage,
+            Pageable pageable) {
+
+        Page<UserLexemeResult> pageOfTranslations = repository.findByUserIdAndLanguages(
+                userId,
+                sourceLanguage,
+                targetLanguage,
+                pageable);
+
+        List<ResponseUserResultsTranslationDto> resultList = pageOfTranslations.getContent()
+                .stream()
+                .map(r -> {
+                    LexemeTranslationDto dto = LexemeTranslationDto.builder()
+                            .sourceLanguage(sourceLanguage)
+                            .targetLanguage(targetLanguage)
+                            .lexeme(r.getLexeme())
+                            .build();
+                    ResponseTranslationDto translationDto = lexemeMapperService.toResponseTranslationDto(dto);
+                    return ResponseUserResultsTranslationDto.from(translationDto, r.getIsActive(), r.getAttempts(), r.getSuccessfulAttempts());
+                })
+                .toList();
+
+        return  new PageImpl<>(
+                resultList,
+                pageOfTranslations.getPageable(),
+                pageOfTranslations.getTotalElements()
+        );
     }
 
     private UserLexemeResult getUserLexemeResultByParams(UserLanguageInfoDto dto, UUID lexemeId) {
