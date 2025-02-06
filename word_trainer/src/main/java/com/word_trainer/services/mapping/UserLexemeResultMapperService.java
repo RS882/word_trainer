@@ -1,21 +1,12 @@
 package com.word_trainer.services.mapping;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.word_trainer.constants.LexemeType;
-import com.word_trainer.constants.language.Language;
 import com.word_trainer.domain.dto.response.ResponseUserResultsDto;
-import com.word_trainer.domain.dto.user_lexeme_result.ResponseUserResultsTranslationDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserLanguageInfoDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserResultsDto;
 import com.word_trainer.domain.entity.UserLexemeResult;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-
-import java.util.Map;
-import java.util.UUID;
 
 @Mapper
 public abstract class UserLexemeResultMapperService {

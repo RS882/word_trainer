@@ -5,7 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.word_trainer.constants.LexemeType;
 import com.word_trainer.constants.language.Language;
 import com.word_trainer.domain.dto.lexeme.LexemeDto;
+import com.word_trainer.domain.dto.lexeme.LexemeTranslationDto;
+import com.word_trainer.domain.dto.response.PageResponseUserResultsTranslationDto;
+import com.word_trainer.domain.dto.response.ResponseTranslationDto;
 import com.word_trainer.domain.dto.response.ResponseUserResultsDto;
+import com.word_trainer.domain.dto.user_lexeme_result.ResponseUserResultsTranslationDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserLexemeResultDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserResultsDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
@@ -18,6 +22,7 @@ import com.word_trainer.security.contstants.Role;
 import com.word_trainer.security.domain.dto.LoginDto;
 import com.word_trainer.security.domain.dto.TokenResponseDto;
 import com.word_trainer.services.interfaces.LexemeService;
+import com.word_trainer.services.mapping.LexemeMapperService;
 import com.word_trainer.services.mapping.UserMapperService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,12 +39,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.isA;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -69,6 +76,9 @@ class UserLexemeResultControllerTest {
     @Autowired
     private UserMapperService mapperService;
 
+    @Autowired
+    private LexemeMapperService lexemeMapperService;
+
     private ObjectMapper mapper = new ObjectMapper();
 
     private String accessToken1;
@@ -94,6 +104,7 @@ class UserLexemeResultControllerTest {
 
     private static final String LOGIN_URL = "/v1/auth/login";
     private static final String USER_LEXEMES_RESULT_URL = "/v1/users/lexeme-results";
+    private static final String USER_LEXEMES_RESULT_TRANSLATION_URL = "/v1/users/lexeme-results/translations";
 
     private void loginUser1() throws Exception {
         TokenResponseDto responseDto = loginUser(USER1_EMAIL, TEST_USER_NAME_1, USER1_PASSWORD);
@@ -759,4 +770,249 @@ class UserLexemeResultControllerTest {
 
         }
     }
+
+    @Nested
+    @DisplayName("GET " + USER_LEXEMES_RESULT_TRANSLATION_URL)
+    public class GetTranslationsTests {
+
+        private List<ResponseUserResultsTranslationDto> getResponseUserResultsTranslationDtoList(
+                int totalElements,
+                String sourceLanguage,
+                String targetLanguage) {
+
+            if(totalElements==0) return new ArrayList<>();
+            int attemptsEnDe = 6;
+            int successfulAttemptsEnDe = 3;
+
+            Language sourceLanguageEnum = Language.valueOf(sourceLanguage);
+            Language targetLanguageEnum = Language.valueOf(targetLanguage);
+
+            Random random = new Random();
+
+            List<Lexeme> createdLexemes = createNewLexemes(totalElements + 3);
+            User user = userRepository.findById(currentUserId1).get();
+
+            List<ResponseUserResultsTranslationDto> resultList = new ArrayList<>();
+
+            for (int i = 0; i < totalElements; i++) {
+                Lexeme lexeme = createdLexemes.get(i);
+                int attempts = attemptsEnDe + i;
+                int successfulAttempts = successfulAttemptsEnDe + i;
+
+                createNewUserLexemeResults(user, lexeme, attempts, successfulAttempts, sourceLanguageEnum, targetLanguageEnum);
+                ResponseTranslationDto dto = lexemeMapperService.toResponseTranslationDto(
+                        LexemeTranslationDto.builder()
+                                .lexeme(lexeme)
+                                .sourceLanguage(sourceLanguageEnum)
+                                .targetLanguage(targetLanguageEnum)
+                                .build()
+                );
+                ResponseUserResultsTranslationDto translationDto = ResponseUserResultsTranslationDto.from(
+                        dto, random.nextBoolean(), attempts, successfulAttempts);
+                resultList.add(translationDto);
+            }
+            for (int i = 0; i < 3; i++) {
+                createNewUserLexemeResults(user,
+                        createdLexemes.get(i),
+                        65,
+                        47,
+                        Language.UKR, Language.RU);
+            }
+            return resultList;
+        }
+
+        private int getContentSize(int totalElements, int size, boolean isLast) {
+
+            if (totalElements == 0) return 0;
+
+            return isLast ? (totalElements % size == 0 ? size : totalElements % size) : size;
+        }
+
+        @ParameterizedTest(name = "Test {index}: Get translation with status 200 [{arguments}]")
+        @CsvSource({
+                "0, 10, attempts, true, 22, EN, DE",
+                "1, 5, attempts, false, 22, UKR, DE",
+                "2, 10, attempts, true, 22, DE, RU",
+                "0, 10, attempts, true, 10, RU, UKR",
+                "0, 10, attempts, true, 3, EN, UKR",
+                "0,,,true, 26, EN, UKR",
+                "0, 10,, true, 26, EN, UKR",
+                ",,,, 26, EN, UKR",
+                "0, 10, attempts, true, 0, EN, DE",
+        })
+        public void get_translations_status_200(
+                Integer page,
+                Integer size,
+                String sortBy,
+                Boolean isAsc,
+                Integer totalElements,
+                String sourceLanguage,
+                String targetLanguage
+        ) throws Exception {
+            loginUser1();
+
+            List<ResponseUserResultsTranslationDto> expectedResultList = getResponseUserResultsTranslationDtoList(
+                    totalElements, sourceLanguage, targetLanguage);
+
+            int defaultPage = 0;
+            int defaultSize = 10;
+            String defaultSortBy = "attempts";
+            boolean defaultIsAsc = true;
+
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("sourceLanguage", sourceLanguage);
+            params.add("targetLanguage", targetLanguage);
+            if (page != null) params.add("page", String.valueOf(page));
+            if (size != null) params.add("size", String.valueOf(size));
+            if (sortBy != null) params.add("sortBy", sortBy);
+            if (isAsc != null) params.add("isAsc", String.valueOf(isAsc));
+
+            size = size == null ? defaultSize : size;
+            page = page == null ? defaultPage : page;
+            sortBy = sortBy == null ? defaultSortBy : sortBy;
+            isAsc = isAsc == null ? defaultIsAsc : isAsc;
+
+            int totalPage = size != 0 ? (int) Math.ceil((double) totalElements / size) : 0;
+            boolean isLast = totalElements == 0 || page == totalPage - 1;
+            boolean isFirst = page == 0;
+            int contentSize = getContentSize(totalElements, size, isLast);
+
+            MvcResult result = mockMvc.perform(get(USER_LEXEMES_RESULT_TRANSLATION_URL)
+                            .params(params)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.pageNumber", is(page)))
+                    .andExpect(jsonPath("$.pageSize", is(size)))
+                    .andExpect(jsonPath("$.totalElements", is(totalElements)))
+                    .andExpect(jsonPath("$.totalPages", is(totalPage)))
+                    .andExpect(jsonPath("$.last", is(isLast)))
+                    .andExpect(jsonPath("$.first", is(isFirst)))
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content", hasSize(contentSize)))
+                    .andReturn();
+            String jsonResponse = result.getResponse().getContentAsString();
+
+            PageResponseUserResultsTranslationDto responseDto = mapper.readValue(
+                    jsonResponse, PageResponseUserResultsTranslationDto.class
+            );
+
+            responseDto.getContent().forEach(r -> {
+                assertEquals(expectedResultList.stream().filter(e -> e.getLexemeId().equals(r.getLexemeId())).count(), 1);
+            });
+        }
+
+        @ParameterizedTest(name = "Test {index}: Get translation with status 400 when languages are wrong[{arguments}]")
+        @CsvSource({
+                "TES, DE",
+                "EN, 345a",
+                "ksj&, &jjsTR"
+        })
+        public void get_translations_status_400_when_languages_are_wring(
+                String sourceLanguage,
+                String targetLanguage
+        ) throws Exception {
+            loginUser1();
+
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            if (sourceLanguage != null) params.add("sourceLanguage", sourceLanguage);
+            if (targetLanguage != null) params.add("targetLanguage", targetLanguage);
+
+            mockMvc.perform(get(USER_LEXEMES_RESULT_TRANSLATION_URL)
+                            .params(params)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.errors").isArray());
+        }
+
+        @ParameterizedTest(name = "Test {index}: Get translation with status 400 when languages are null[{arguments}]")
+        @CsvSource({
+                ", DE",
+                "TES,",
+                ","
+        })
+        public void get_translations_status_400_when_languages_are_null(
+                String sourceLanguage,
+                String targetLanguage
+        ) throws Exception {
+            loginUser1();
+
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            if (sourceLanguage != null) params.add("sourceLanguage", sourceLanguage);
+            if (targetLanguage != null) params.add("targetLanguage", targetLanguage);
+
+            mockMvc.perform(get(USER_LEXEMES_RESULT_TRANSLATION_URL)
+                            .params(params)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @ParameterizedTest(name = "Test {index}: Get translation with status 400 when pagination parameter sortBy is wrong[{arguments}]")
+        @CsvSource({
+                " test",
+                "skskskk ozii&8Y"
+        })
+        public void get_translations_status_400_when_pagination_parameter_sortBy_is_wrong(
+                String sortBy
+        ) throws Exception {
+            loginUser1();
+
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("sourceLanguage", "EN");
+            params.add("targetLanguage", "DE");
+            params.add("sortBy", sortBy);
+
+            mockMvc.perform(get(USER_LEXEMES_RESULT_TRANSLATION_URL)
+                            .params(params)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.message").isNotEmpty())
+                    .andExpect(jsonPath("$.message", isA(String.class)));
+        }
+    }
+
+    @ParameterizedTest(name = "Test {index}: Get translation with status 400 when pagination parameter are wrong[{arguments}]")
+    @CsvSource({
+            "-4, 10",
+            "1, -10",
+            "-4, -100",
+            "0, 0",
+    })
+    public void get_translations_status_400_when_pagination_parameter_are_wrong(
+            int page,
+            int size
+    ) throws Exception {
+        loginUser1();
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("sourceLanguage", "EN");
+        params.add("targetLanguage", "DE");
+        params.add("page", String.valueOf(page));
+        params.add("size", String.valueOf(size));
+
+        mockMvc.perform(get(USER_LEXEMES_RESULT_TRANSLATION_URL)
+                        .params(params)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.errors").isArray());
+    }
+
+    @Test
+    public void get_translations_status_401_when_user_is_not_authorized() throws Exception {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("sourceLanguage", "EN");
+        params.add("targetLanguage", "DE");
+
+        mockMvc.perform(get(USER_LEXEMES_RESULT_TRANSLATION_URL)
+                        .params(params)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + "test token"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").isNotEmpty())
+                .andExpect(jsonPath("$.message", isA(String.class)));
+    }
 }
+

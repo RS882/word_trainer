@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceResolvable;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -130,6 +131,12 @@ public class GlobalExceptionHandler {
                 .body(ValidationErrorsDto.builder()
                         .errors(validationErrors)
                         .build());
+
+    }
+
+    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
+    public ResponseEntity<ResponseMessageDto> handleInvalidDataAccessApiUsage(InvalidDataAccessApiUsageException e) {
+        return new ResponseEntity<>(new ResponseMessageDto("Query error: Please check that all fields in the query exist."), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(RuntimeException.class)

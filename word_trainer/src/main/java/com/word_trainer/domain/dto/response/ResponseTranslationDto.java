@@ -6,6 +6,7 @@ import com.word_trainer.constants.LexemeType;
 import com.word_trainer.constants.language.Language;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Map;

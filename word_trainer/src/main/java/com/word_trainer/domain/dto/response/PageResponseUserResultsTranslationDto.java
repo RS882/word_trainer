@@ -4,6 +4,7 @@ import com.word_trainer.domain.dto.user_lexeme_result.ResponseUserResultsTransla
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.domain.Page;
 
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Schema(description = "Paginated response")
 public class PageResponseUserResultsTranslationDto {
 
