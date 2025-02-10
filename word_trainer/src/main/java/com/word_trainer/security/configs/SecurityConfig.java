@@ -56,6 +56,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/users/lexeme-results").authenticated()
                         .requestMatchers(HttpMethod.GET, "/v1/users/lexeme-results").authenticated()
                         .requestMatchers(HttpMethod.GET, "/v1/users/lexeme-results/translations").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/v1/users/lexeme-results/active").authenticated()
+
                         .anyRequest().denyAll()
                 )
                 .addFilterBefore(validationFilter, UsernamePasswordAuthenticationFilter.class)

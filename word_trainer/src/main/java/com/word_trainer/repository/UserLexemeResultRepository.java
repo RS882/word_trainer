@@ -35,4 +35,8 @@ public interface UserLexemeResultRepository extends JpaRepository<UserLexemeResu
             @Param("sourceLanguage") Language sourceLanguage,
             @Param("targetLanguage") Language targetLanguage,
             Pageable pageable);
+
+    @Query("SELECT ulr FROM UserLexemeResult ulr WHERE ulr.user.id = :userId " +
+            "AND ulr.lexeme.id IN  :lexemesIds")
+    List<UserLexemeResult> findByUserIdAndLexemesIdS(@Param("userId") Long userId, @Param("lexemesIds") List<UUID> lexemesIds);
 }

@@ -4,10 +4,7 @@ import com.word_trainer.constants.language.Language;
 import com.word_trainer.domain.dto.lexeme.LexemeTranslationDto;
 import com.word_trainer.domain.dto.response.ResponseTranslationDto;
 import com.word_trainer.domain.dto.response.ResponseUserResultsDto;
-import com.word_trainer.domain.dto.user_lexeme_result.ResponseUserResultsTranslationDto;
-import com.word_trainer.domain.dto.user_lexeme_result.UserLanguageInfoDto;
-import com.word_trainer.domain.dto.user_lexeme_result.UserLexemeResultDto;
-import com.word_trainer.domain.dto.user_lexeme_result.UserResultsDto;
+import com.word_trainer.domain.dto.user_lexeme_result.*;
 import com.word_trainer.domain.entity.Lexeme;
 import com.word_trainer.domain.entity.User;
 import com.word_trainer.domain.entity.UserLexemeResult;
@@ -24,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -117,11 +115,35 @@ public class UserLexemeResultServiceImpl implements UserLexemeResultService {
                 })
                 .toList();
 
-        return  new PageImpl<>(
+        return new PageImpl<>(
                 resultList,
                 pageOfTranslations.getPageable(),
                 pageOfTranslations.getTotalElements()
         );
+    }
+
+    @Override
+    @Transactional
+    public void updateStatusOfUserLexemesResults(Long userId, List<UpdateStatusUserLexemeResultDto> dto) {
+
+        List<UUID> listLexemeIdToUpdate = dto.stream()
+                .map(UpdateStatusUserLexemeResultDto::getLexemeId)
+                .distinct()
+                .toList();
+
+        List<UserLexemeResult> resultToUpdateStatus = repository.findByUserIdAndLexemesIdS(userId, listLexemeIdToUpdate);
+
+        Map<UUID, UserLexemeResult> lexemeIdToResultMap = resultToUpdateStatus.stream()
+                .collect(Collectors.toMap(u -> u.getLexeme().getId(), u -> u));
+
+        dto.forEach(r -> {
+            UserLexemeResult toUpdate = lexemeIdToResultMap.get(r.getLexemeId());
+            if (toUpdate != null) {
+                if (!toUpdate.getIsActive().equals(r.getIsActive())) {
+                    toUpdate.setIsActive(r.getIsActive());
+                }
+            }
+        });
     }
 
     private UserLexemeResult getUserLexemeResultByParams(UserLanguageInfoDto dto, UUID lexemeId) {

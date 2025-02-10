@@ -5,7 +5,7 @@ import com.word_trainer.controllers.validators.ValidEnum;
 import com.word_trainer.domain.dto.response.PageResponseUserResultsTranslationDto;
 import com.word_trainer.domain.dto.response.ResponseMessageDto;
 import com.word_trainer.domain.dto.response.ResponseUserResultsDto;
-import com.word_trainer.domain.dto.user_lexeme_result.ResponseUserResultsTranslationDto;
+import com.word_trainer.domain.dto.user_lexeme_result.UpdateStatusUserLexemeResultDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserLexemeResultDto;
 import com.word_trainer.domain.entity.User;
 import com.word_trainer.exception_handler.dto.ValidationErrorsDto;
@@ -22,14 +22,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.data.domain.Page;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -234,5 +231,60 @@ public interface UserLexemeResultAPI {
                     @ExampleObject(name = "Sort direction is descending", value = "false")
             })
             Boolean isAsc
+    );
+
+    @Operation(summary = "Update user lexemes results status ",
+            description = "This method update user lexemes results status when user is authorized."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "User translation results retrieved successfully"
+            ),
+            @ApiResponse(responseCode = "400", description = "Request is wrong",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(
+                                    oneOf = {
+                                            ValidationErrorsDto.class
+                                    }
+                            ),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "Validation Errors",
+                                            value = "{\n" +
+                                                    "  \"errors\": [\n" +
+                                                    "    {\n" +
+                                                    "      \"field\": \"lexemeId\",\n" +
+                                                    "      \"message\": \"Source Language cannot be null\",\n" +
+                                                    "      \"rejectedValue\": \"rt\"\n" +
+                                                    "    }\n" +
+                                                    "  ]\n" +
+                                                    "}"
+                                    )
+                            })),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized user",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ResponseMessageDto.class)
+                    )),
+            @ApiResponse(responseCode = "500",
+                    description = "Server error",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ResponseMessageDto.class)
+                    ))
+    })
+    @PatchMapping("/active")
+    ResponseEntity<Void> updateUserLexemeResultStatus(
+            @AuthenticationPrincipal
+            @Parameter(hidden = true)
+            User currentUser,
+
+            @org.springframework.web.bind.annotation.RequestBody
+            @Valid
+            @NotNull(message = "Dto list cannot be null")
+            @Size(min = 1, message = "Dto list cannot be empty")
+            List<@Valid UpdateStatusUserLexemeResultDto> dto
     );
 }

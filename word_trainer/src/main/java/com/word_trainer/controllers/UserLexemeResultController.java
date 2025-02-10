@@ -6,6 +6,7 @@ import com.word_trainer.domain.dto.response.PageResponseUserResultsTranslationDt
 import com.word_trainer.domain.dto.response.ResponseMessageDto;
 import com.word_trainer.domain.dto.response.ResponseUserResultsDto;
 import com.word_trainer.domain.dto.user_lexeme_result.ResponseUserResultsTranslationDto;
+import com.word_trainer.domain.dto.user_lexeme_result.UpdateStatusUserLexemeResultDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserLexemeResultDto;
 import com.word_trainer.domain.entity.User;
 import com.word_trainer.services.interfaces.UserLexemeResultService;
@@ -60,6 +61,14 @@ public class UserLexemeResultController implements UserLexemeResultAPI {
         );
         return ResponseEntity.status((HttpStatus.OK))
                 .body(new PageResponseUserResultsTranslationDto(translations));
+    }
+
+    @Override
+    public ResponseEntity<Void> updateUserLexemeResultStatus(
+            User currentUser,
+            List<UpdateStatusUserLexemeResultDto> dto) {
+        service.updateStatusOfUserLexemesResults(currentUser.getId(), dto);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
 

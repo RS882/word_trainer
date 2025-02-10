@@ -10,6 +10,7 @@ import com.word_trainer.domain.dto.response.PageResponseUserResultsTranslationDt
 import com.word_trainer.domain.dto.response.ResponseTranslationDto;
 import com.word_trainer.domain.dto.response.ResponseUserResultsDto;
 import com.word_trainer.domain.dto.user_lexeme_result.ResponseUserResultsTranslationDto;
+import com.word_trainer.domain.dto.user_lexeme_result.UpdateStatusUserLexemeResultDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserLexemeResultDto;
 import com.word_trainer.domain.dto.user_lexeme_result.UserResultsDto;
 import com.word_trainer.domain.dto.users.UserRegistrationDto;
@@ -79,7 +80,7 @@ class UserLexemeResultControllerTest {
     @Autowired
     private LexemeMapperService lexemeMapperService;
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private String accessToken1;
     private Long currentUserId1;
@@ -105,6 +106,7 @@ class UserLexemeResultControllerTest {
     private static final String LOGIN_URL = "/v1/auth/login";
     private static final String USER_LEXEMES_RESULT_URL = "/v1/users/lexeme-results";
     private static final String USER_LEXEMES_RESULT_TRANSLATION_URL = "/v1/users/lexeme-results/translations";
+    private static final String USER_LEXEMES_RESULT_UPDATE_STATUS_URL = "/v1/users/lexeme-results/active";
 
     private void loginUser1() throws Exception {
         TokenResponseDto responseDto = loginUser(USER1_EMAIL, TEST_USER_NAME_1, USER1_PASSWORD);
@@ -780,7 +782,7 @@ class UserLexemeResultControllerTest {
                 String sourceLanguage,
                 String targetLanguage) {
 
-            if(totalElements==0) return new ArrayList<>();
+            if (totalElements == 0) return new ArrayList<>();
             int attemptsEnDe = 6;
             int successfulAttemptsEnDe = 3;
 
@@ -971,48 +973,198 @@ class UserLexemeResultControllerTest {
                     .andExpect(jsonPath("$.message").isNotEmpty())
                     .andExpect(jsonPath("$.message", isA(String.class)));
         }
+
+        @ParameterizedTest(name = "Test {index}: Get translation with status 400 when pagination parameter are wrong[{arguments}]")
+        @CsvSource({
+                "-4, 10",
+                "1, -10",
+                "-4, -100",
+                "0, 0",
+        })
+        public void get_translations_status_400_when_pagination_parameter_are_wrong(
+                int page,
+                int size
+        ) throws Exception {
+            loginUser1();
+
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("sourceLanguage", "EN");
+            params.add("targetLanguage", "DE");
+            params.add("page", String.valueOf(page));
+            params.add("size", String.valueOf(size));
+
+            mockMvc.perform(get(USER_LEXEMES_RESULT_TRANSLATION_URL)
+                            .params(params)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.errors").isArray());
+        }
+
+        @Test
+        public void get_translations_status_401_when_user_is_not_authorized() throws Exception {
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("sourceLanguage", "EN");
+            params.add("targetLanguage", "DE");
+
+            mockMvc.perform(get(USER_LEXEMES_RESULT_TRANSLATION_URL)
+                            .params(params)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + "test token"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.message").isNotEmpty())
+                    .andExpect(jsonPath("$.message", isA(String.class)));
+        }
     }
 
-    @ParameterizedTest(name = "Test {index}: Get translation with status 400 when pagination parameter are wrong[{arguments}]")
-    @CsvSource({
-            "-4, 10",
-            "1, -10",
-            "-4, -100",
-            "0, 0",
-    })
-    public void get_translations_status_400_when_pagination_parameter_are_wrong(
-            int page,
-            int size
-    ) throws Exception {
-        loginUser1();
+    @Nested
+    @DisplayName("PATCH " + USER_LEXEMES_RESULT_UPDATE_STATUS_URL)
+    public class UpdateUserLexemeResultStatusTests {
 
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("sourceLanguage", "EN");
-        params.add("targetLanguage", "DE");
-        params.add("page", String.valueOf(page));
-        params.add("size", String.valueOf(size));
+        @Test
+        public void update_user_lexeme_result_status_status_204() throws Exception {
+            loginUser1();
 
-        mockMvc.perform(get(USER_LEXEMES_RESULT_TRANSLATION_URL)
-                        .params(params)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.errors").isArray());
-    }
+            int attempts = 6;
+            int successfulAttempts = 3;
+            User user = userRepository.findById(currentUserId1).get();
 
-    @Test
-    public void get_translations_status_401_when_user_is_not_authorized() throws Exception {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("sourceLanguage", "EN");
-        params.add("targetLanguage", "DE");
+            List<Lexeme> createdLexemes = createNewLexemes(12);
+            for (int i = 0; i < 10; i++) {
+                createNewUserLexemeResults(user,
+                        createdLexemes.get(i),
+                        attempts,
+                        successfulAttempts);
+            }
+            List<UpdateStatusUserLexemeResultDto> updateDtos = new ArrayList<>();
+            for (int i = 0; i < 10; i++) {
+                UpdateStatusUserLexemeResultDto dto;
+                if (i < 6) {
+                    dto = UpdateStatusUserLexemeResultDto.builder()
+                            .lexemeId(createdLexemes.get(i).getId())
+                            .isActive(false)
+                            .build();
+                } else {
+                    dto = UpdateStatusUserLexemeResultDto.builder()
+                            .lexemeId(createdLexemes.get(i).getId())
+                            .isActive(true)
+                            .build();
+                }
+                updateDtos.add(dto);
+            }
+            String jsonDto = mapper.writeValueAsString(updateDtos);
 
-        mockMvc.perform(get(USER_LEXEMES_RESULT_TRANSLATION_URL)
-                        .params(params)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + "test token"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").isNotEmpty())
-                .andExpect(jsonPath("$.message", isA(String.class)));
+            mockMvc.perform(patch(USER_LEXEMES_RESULT_UPDATE_STATUS_URL)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(jsonDto))
+                    .andExpect(status().isNoContent());
+
+            List<UserLexemeResult> list = userLexemeResultRepository.findAll();
+            long countOfActive = list.stream().filter(UserLexemeResult::getIsActive).count();
+
+            assertEquals(countOfActive, 4L);
+        }
+
+        @Test
+        public void update_user_lexeme_result_status_status_400_when_dto_is_null() throws Exception {
+            loginUser1();
+            mockMvc.perform(patch(USER_LEXEMES_RESULT_UPDATE_STATUS_URL)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.message").isNotEmpty())
+                    .andExpect(jsonPath("$.message", isA(String.class)));
+        }
+
+        @Test
+        public void update_user_lexeme_result_status_status_400_when_dto_is_empty() throws Exception {
+            loginUser1();
+            List<UpdateStatusUserLexemeResultDto> updateDtos = new ArrayList<>();
+            String jsonDto = mapper.writeValueAsString(updateDtos);
+            mockMvc.perform(patch(USER_LEXEMES_RESULT_UPDATE_STATUS_URL)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1)
+                            .content(jsonDto)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.errors").isArray());
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+                ",",
+                ",false",
+                "8bdbca11-ac4a-4b25-ab3c-a4e0e31340af, ",
+        })
+        public void update_user_lexeme_result_status_status_400_when_dto_data_is_wrong(
+                UUID lexemeId,
+                Boolean isActive
+        ) throws Exception {
+
+            loginUser1();
+            UpdateStatusUserLexemeResultDto wrongDto = UpdateStatusUserLexemeResultDto.builder()
+                    .lexemeId(lexemeId)
+                    .isActive(isActive)
+                    .build();
+            List<UpdateStatusUserLexemeResultDto> updateDtos = new ArrayList<>();
+            updateDtos.add(wrongDto);
+
+            int attempts = 6;
+            int successfulAttempts = 3;
+            User user = userRepository.findById(currentUserId1).get();
+
+            List<Lexeme> createdLexemes = createNewLexemes(12);
+            for (int i = 0; i < 10; i++) {
+                createNewUserLexemeResults(user,
+                        createdLexemes.get(i),
+                        attempts,
+                        successfulAttempts);
+            }
+
+            for (int i = 0; i < 10; i++) {
+                UpdateStatusUserLexemeResultDto dto;
+                if (i < 6) {
+                    dto = UpdateStatusUserLexemeResultDto.builder()
+                            .lexemeId(createdLexemes.get(i).getId())
+                            .isActive(false)
+                            .build();
+                } else {
+                    dto = UpdateStatusUserLexemeResultDto.builder()
+                            .lexemeId(createdLexemes.get(i).getId())
+                            .isActive(true)
+                            .build();
+                }
+                updateDtos.add(dto);
+            }
+            String jsonDto = mapper.writeValueAsString(updateDtos);
+
+
+            mockMvc.perform(patch(USER_LEXEMES_RESULT_UPDATE_STATUS_URL)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken1)
+                            .content(jsonDto)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.errors").isArray());
+
+            List<UserLexemeResult> list = userLexemeResultRepository.findAll();
+            long countOfActive = list.stream().filter(UserLexemeResult::getIsActive).count();
+            assertEquals(countOfActive, 10L);
+        }
+
+        @Test
+        public void update_user_lexeme_result_status_status_401_when_user_unauthorized() throws Exception {
+
+            mockMvc.perform(patch(USER_LEXEMES_RESULT_UPDATE_STATUS_URL)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + "test Token")
+                            .contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.message").isNotEmpty())
+                    .andExpect(jsonPath("$.message", isA(String.class)));
+        }
     }
 }
 
