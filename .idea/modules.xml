@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/word_trainer.iml" filepath="$PROJECT_DIR$/.idea/word_trainer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/word_trainer/word_trainer.iml" filepath="$PROJECT_DIR$/word_trainer/word_trainer.iml" />
     </modules>
   </component>
 </project>
